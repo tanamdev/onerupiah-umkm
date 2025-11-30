@@ -63,13 +63,36 @@ export default function GambarPage() {
     extraInstructions: '',
     imageSize: IMAGE_SIZES[0], // Default ke Instagram Post
     foodName: '',
-    // Poster-specific defaults
-    posterStyle: POSTER_STYLES[0],
-    layoutTemplate: POSTER_LAYOUT_TEMPLATES[0],
-    colorScheme: POSTER_COLOR_SCHEMES[0],
-    typographyStyle: POSTER_TYPOGRAPHY_STYLES[0],
+    // Poster-specific fields - only set when poster mode is selected
+    posterStyle: undefined,
+    layoutTemplate: undefined,
+    colorScheme: undefined,
+    typographyStyle: undefined,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update config when style mode changes
+  useEffect(() => {
+    if (selectedStyle === 'poster') {
+      // Set poster-specific defaults when poster mode is selected
+      setConfig(prev => ({
+        ...prev,
+        posterStyle: POSTER_STYLES[0],
+        layoutTemplate: POSTER_LAYOUT_TEMPLATES[0],
+        colorScheme: POSTER_COLOR_SCHEMES[0],
+        typographyStyle: POSTER_TYPOGRAPHY_STYLES[0],
+      }));
+    } else {
+      // Clear poster fields when realistic mode is selected
+      setConfig(prev => ({
+        ...prev,
+        posterStyle: undefined,
+        layoutTemplate: undefined,
+        colorScheme: undefined,
+        typographyStyle: undefined,
+      }));
+    }
+  }, [selectedStyle]);
 
   // Load saved images from localStorage on client mount
   useEffect(() => {
