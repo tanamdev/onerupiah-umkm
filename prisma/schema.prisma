@@ -1,0 +1,180 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and user management
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  name        String
+  phone       String?
+  avatar      String?
+  isActive    Boolean  @default(true)
+  emailVerified Boolean @default(false)
+  role        UserRole @default(USER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  subscriptions Subscription[]
+  contentGenerations ContentGeneration[]
+  imageGenerations ImageGeneration[]
+  aiAssistants AiAssistant[]
+  userSessions UserSession[]
+
+  @@map("users")
+}
+
+// Enum for user roles
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+// Subscription model for user subscriptions
+model Subscription {
+  id           String           @id @default(cuid())
+  userId       String
+  plan         SubscriptionPlan
+  status       SubscriptionStatus @default(ACTIVE)
+  startDate    DateTime
+  endDate      DateTime
+  monthlyPrice Int
+  yearlyPrice  Int?
+  autoRenew    Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+// Enum for subscription plans
+enum SubscriptionPlan {
+  FREE
+  PREMIUM_MONTHLY
+  PREMIUM_YEARLY
+}
+
+// Enum for subscription status
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+// User session model for authentication tracking
+model UserSession {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  isActive  Boolean  @default(true)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+// Content generation tracking
+model ContentGeneration {
+  id         String        @id @default(cuid())
+  userId     String
+  type       ContentType
+  prompt     String
+  generatedContent String?
+  promptTokens Int?
+  completionTokens Int?
+  cost       Float?
+  status     GenerationStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("content_generations")
+}
+
+// Enum for content types
+enum ContentType {
+  CAPTION
+  EMAIL
+  BLOG_POST
+  PRODUCT_DESCRIPTION
+  MARKETING_PLAN
+  HASHTAGS
+}
+
+// Enum for generation status
+enum GenerationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// Image generation tracking
+model ImageGeneration {
+  id         String     @id @default(cuid())
+  userId     String
+  prompt     String
+  imageUrl   String?
+  imageStyle String?
+  imageSize  String?
+  cost       Float?
+  status     GenerationStatus @default(PENDING)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("image_generations")
+}
+
+// AI Assistant interaction tracking
+model AiAssistant {
+  id         String     @id @default(cuid())
+  userId     String
+  sessionId  String?
+  message    String
+  response   String?
+  tokensUsed Int?
+  cost       Float?
+  type       AssistantType @default(CHAT)
+  createdAt  DateTime   @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_assistants")
+}
+
+// Enum for assistant interaction types
+enum AssistantType {
+  CHAT
+  CONTENT_HELP
+  MARKETING_ADVICE
+  BUSINESS_TIPS
+}
