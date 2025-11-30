@@ -22,8 +22,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Wand2, Loader2 } from 'lucide-react';
 import type { GenerationConfig, GeneratedImage } from '@/types/image';
-import { generateImage } from '@/services/imageService';
+import { generateImage, enhanceInstructions } from '@/services/imageService';
 import {
   PRODUCT_STYLES,
   BACKGROUND_STYLES,
@@ -31,6 +32,10 @@ import {
   PLATING_STYLES,
   IMAGE_SIZES,
   IMAGE_SIZE_CATEGORIES,
+  POSTER_STYLES,
+  POSTER_LAYOUT_TEMPLATES,
+  POSTER_COLOR_SCHEMES,
+  POSTER_TYPOGRAPHY_STYLES,
 } from '@/constants/prompts';
 import { getFoodSuggestions, FOOD_CATEGORIES } from '@/constants/foodNames';
 
@@ -50,13 +55,19 @@ export default function GambarPage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [imageScale, setImageScale] = useState(1);
   const [foodSuggestions, setFoodSuggestions] = useState<string[]>([]);
-  const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
+  const [showFoodSuggestions, setShowFoodSuggestions] = useState(false)
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const [config, setConfig] = useState<GenerationConfig>({
     platingStyle: PRODUCT_STYLES[0],
     backgroundStyle: BACKGROUND_STYLES[0],
     extraInstructions: '',
     imageSize: IMAGE_SIZES[0], // Default ke Instagram Post
     foodName: '',
+    // Poster-specific defaults
+    posterStyle: POSTER_STYLES[0],
+    layoutTemplate: POSTER_LAYOUT_TEMPLATES[0],
+    colorScheme: POSTER_COLOR_SCHEMES[0],
+    typographyStyle: POSTER_TYPOGRAPHY_STYLES[0],
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -218,15 +229,24 @@ export default function GambarPage() {
     setError(null);
 
     try {
+      // Check if poster mode is selected
+      const isPoster = selectedStyle === 'poster';
+
       // Log untuk debugging
       console.log('Config for generation:', {
+        selectedStyle,
+        isPoster,
         platingStyle: config.platingStyle,
+        posterStyle: config.posterStyle,
+        layoutTemplate: config.layoutTemplate,
+        colorScheme: config.colorScheme,
+        typographyStyle: config.typographyStyle,
         extraInstructions: config.extraInstructions,
         imageSize: config.imageSize?.name,
         foodName: config.foodName,
       });
 
-      const images = await generateImage(uploadedFile, config);
+      const images = await generateImage(uploadedFile, config, isPoster);
       setGeneratedImages(images);
     } catch (err) {
       const errorMessage =
@@ -273,6 +293,33 @@ export default function GambarPage() {
     }
   };
 
+  const handleMagicEnhance = async () => {
+    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+      setError('Magic enhancement membutuhkan NEXT_PUBLIC_GEMINI_API_KEY di .env.local');
+      return;
+    }
+
+    setIsEnhancing(true);
+    setError(null);
+
+    try {
+      const enhancedInstructions = await enhanceInstructions(
+        config.extraInstructions || '',
+        config.foodName,
+        config.platingStyle,
+        config.imageSize
+      );
+
+      setConfig({ ...config, extraInstructions: enhancedInstructions });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Gagal memperbaiki instruksi';
+      setError(errorMessage);
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
   return (
     <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
       <div className='mb-8'>
@@ -285,25 +332,24 @@ export default function GambarPage() {
       </div>
 
       {/* Style Selection */}
-      <div className='grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
+      <div className='grid grid-cols-2 lg:grid-cols-2 gap-6 mb-8 max-w-2xl mx-auto'>
         {[
-          { style: 'realistic', label: 'Realistic', icon: '📸' },
-          { style: 'cartoon', label: 'Cartoon', icon: '🎨' },
-          { style: 'minimalist', label: 'Minimalist', icon: '◻️' },
-          { style: 'vintage', label: 'Vintage', icon: '📷' },
+          { style: 'realistic', label: 'Realistic', icon: '📸', description: 'Foto profesional dengan kualitas tinggi' },
+          { style: 'poster', label: 'Poster', icon: '🎨', description: 'Gaya poster artistik dan menarik' },
         ].map((item) => (
           <Card
             key={item.style}
             className={`cursor-pointer transition-all ${
               selectedStyle === item.style
-                ? 'ring-2 ring-purple-500 bg-purple-50'
-                : 'hover:shadow-md'
+                ? 'ring-2 ring-purple-500 bg-purple-50 shadow-lg'
+                : 'hover:shadow-md hover:border-purple-200'
             }`}
             onClick={() => setSelectedStyle(item.style)}
           >
-            <CardContent className='p-4 text-center'>
-              <div className='text-3xl mb-2'>{item.icon}</div>
-              <div className='text-sm font-medium'>{item.label}</div>
+            <CardContent className='p-6 text-center'>
+              <div className='text-4xl mb-3'>{item.icon}</div>
+              <div className='text-lg font-semibold mb-2'>{item.label}</div>
+              <div className='text-sm text-gray-600'>{item.description}</div>
             </CardContent>
           </Card>
         ))}
@@ -610,60 +656,183 @@ export default function GambarPage() {
               </div>
             </div>
 
-            {/* Product Style */}
-            <div>
-              <Label className='block text-sm font-medium text-gray-700 mb-2'>
-                Gaya Produk
-              </Label>
-              <select
-                className='w-full px-3 py-2 border border-gray-300 rounded-lg'
-                value={config.platingStyle}
-                onChange={(e) =>
-                  setConfig({ ...config, platingStyle: e.target.value })
-                }
-              >
-                {PRODUCT_STYLES.map((style) => (
-                  <option key={style} value={style}>
-                    {style}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {selectedStyle === 'poster' ? (
+            // Poster-specific controls
+            <>
+              <div>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                  🎨 Gaya Poster
+                </Label>
+                <select
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
+                  value={config.posterStyle}
+                  onChange={(e) =>
+                    setConfig({ ...config, posterStyle: e.target.value })
+                  }
+                >
+                  {POSTER_STYLES.map((style) => (
+                    <option key={style} value={style}>
+                      {style}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {/* Background Style */}
-            <div>
-              <Label className='block text-sm font-medium text-gray-700 mb-2'>
-                Latar Belakang
-              </Label>
-              <select
-                className='w-full px-3 py-2 border border-gray-300 rounded-lg'
-                value={config.backgroundStyle}
-                onChange={(e) =>
-                  setConfig({ ...config, backgroundStyle: e.target.value })
-                }
-              >
-                {BACKGROUND_STYLES.map((style) => (
-                  <option key={style} value={style}>
-                    {style}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                  📐 Layout Template
+                </Label>
+                <select
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
+                  value={config.layoutTemplate}
+                  onChange={(e) =>
+                    setConfig({ ...config, layoutTemplate: e.target.value })
+                  }
+                >
+                  {POSTER_LAYOUT_TEMPLATES.map((template) => (
+                    <option key={template} value={template}>
+                      {template}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                  🎨 Color Scheme
+                </Label>
+                <select
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
+                  value={config.colorScheme}
+                  onChange={(e) =>
+                    setConfig({ ...config, colorScheme: e.target.value })
+                  }
+                >
+                  {POSTER_COLOR_SCHEMES.map((scheme) => (
+                    <option key={scheme} value={scheme}>
+                      {scheme}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                  🔤 Typography Style
+                </Label>
+                <select
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
+                  value={config.typographyStyle}
+                  onChange={(e) =>
+                    setConfig({ ...config, typographyStyle: e.target.value })
+                  }
+                >
+                  {POSTER_TYPOGRAPHY_STYLES.map((typography) => (
+                    <option key={typography} value={typography}>
+                      {typography}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                  🖼️ Background Style
+                </Label>
+                <select
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
+                  value={config.backgroundStyle}
+                  onChange={(e) =>
+                    setConfig({ ...config, backgroundStyle: e.target.value })
+                  }
+                >
+                  {BACKGROUND_STYLES.map((style) => (
+                    <option key={style} value={style}>
+                      {style}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          ) : (
+            // Realistic-specific controls
+            <>
+              <div>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                  📸 Gaya Fotografi
+                </Label>
+                <select
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
+                  value={config.platingStyle}
+                  onChange={(e) =>
+                    setConfig({ ...config, platingStyle: e.target.value })
+                  }
+                >
+                  {PRODUCT_STYLES.map((style) => (
+                    <option key={style} value={style}>
+                      {style}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                  🖼️ Background Style
+                </Label>
+                <select
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
+                  value={config.backgroundStyle}
+                  onChange={(e) =>
+                    setConfig({ ...config, backgroundStyle: e.target.value })
+                  }
+                >
+                  {BACKGROUND_STYLES.map((style) => (
+                    <option key={style} value={style}>
+                      {style}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
 
             {/* Extra Instructions */}
             <div>
-              <Label className='block text-sm font-medium text-gray-700 mb-2'>
-                Instruksi Tambahan
-              </Label>
+              <div className="flex items-center gap-2 mb-2">
+                <Label className='text-sm font-medium text-gray-700'>
+                  Instruksi Tambahan <span className="text-gray-400">(opsional)</span>
+                </Label>
+                <button
+                  type="button"
+                  onClick={handleMagicEnhance}
+                  disabled={!config.extraInstructions || isEnhancing}
+                  className="p-1.5 rounded-md bg-purple-100 hover:bg-purple-200 text-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group relative"
+                  title="Perbaiki instruksi dengan AI"
+                >
+                  {isEnhancing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Wand2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  )}
+                </button>
+              </div>
               <textarea
-                className='w-full px-3 py-2 border border-gray-300 rounded-lg'
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg resize-none'
                 rows={3}
                 placeholder='Contoh: Fokus pada tekstur, lighting dramatis, warna-warna cerah...'
                 value={config.extraInstructions}
                 onChange={(e) =>
                   setConfig({ ...config, extraInstructions: e.target.value })
                 }
+                disabled={isEnhancing}
               />
+              {isEnhancing && (
+                <div className="flex items-center gap-2 text-sm text-purple-600 animate-pulse mt-2">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>Memperbaiki instruksi dengan AI...</span>
+                </div>
+              )}
             </div>
 
             {/* Error Alert */}

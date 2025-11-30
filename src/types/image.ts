@@ -15,6 +15,11 @@ export interface GenerationConfig {
   extraInstructions?: string;
   imageSize?: ImageSize;
   foodName?: string;
+  // Poster-specific fields
+  posterStyle?: string;
+  layoutTemplate?: string;
+  colorScheme?: string;
+  typographyStyle?: string;
 }
 
 export interface GeneratedImage {
