@@ -227,7 +227,7 @@ export default function KontenPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Input Form */}
-        <Card>
+        <Card className="border-gray-300 shadow-md">
           <CardHeader>
             <CardTitle>Detail Konten</CardTitle>
             <CardDescription>
@@ -345,7 +345,7 @@ export default function KontenPage() {
         </Card>
 
         {/* Output Preview */}
-        <Card>
+        <Card className="border-gray-300 shadow-md">
           <CardHeader>
             <CardTitle>Hasil Generate</CardTitle>
             <CardDescription>

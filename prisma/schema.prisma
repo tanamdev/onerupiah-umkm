@@ -27,6 +27,35 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Business profile fields
+  businessName       String?
+  businessCategory   String?
+  businessDescription String?
+  businessAddress    String?
+  businessPhone      String?
+  businessWebsite     String?
+
+  // Store management fields
+  storeName          String?  @map("store_name")
+  storeLogo          String?  @map("store_logo")
+  storeImage         String?  @map("store_image")
+  storeAddress       String?  @map("store_address")
+  storePhone         String?  @map("store_phone")
+  primaryColor       String?  @map("primary_color")
+  secondaryColor     String?  @map("secondary_color")
+  thirdColor         String?  @map("third_color")
+
+  // AI Settings fields
+  aiProvider         String?  @map("ai_provider")
+  aiModel            String?  @map("ai_model")
+  aiApiKey           String?  @map("ai_api_key")
+  aiTemperature      Float?   @map("ai_temperature")
+  aiMaxTokens        Int?     @map("ai_max_tokens")
+  aiToneOfVoice      String?  @map("ai_tone_of_voice")
+  aiTargetAudience   String?  @map("ai_target_audience")
+  aiPlatforms        String[] @map("ai_platforms")
+  aiCustomInstructions String? @map("ai_custom_instructions")
+
   // Relations
   subscriptions Subscription[]
   contentGenerations ContentGeneration[]

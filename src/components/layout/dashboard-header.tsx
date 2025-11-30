@@ -5,15 +5,12 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { SubscriptionBadge } from '@/components/subscription/SubscriptionBadge'
-import { useSubscription } from '@/contexts/SubscriptionContext'
 import { useUser } from '@/contexts/UserContext'
 
 export function DashboardHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const pathname = usePathname()
-  const { isTrial, isPremium, isFree } = useSubscription()
-  const { user, isLoading } = useUser()
+  const { user, isLoading, logout } = useUser()
 
   // Show loading skeleton while user data is loading
   if (isLoading) {
@@ -53,7 +50,6 @@ export function DashboardHeader() {
     { name: 'Dashboard', href: '/dashboard', icon: '🏠' },
     { name: 'Generate Konten', href: '/dashboard/konten', icon: '✍️' },
     { name: 'Generate Gambar', href: '/dashboard/gambar', icon: '🎨' },
-    { name: 'Pengaturan', href: '/dashboard/settings', icon: '⚙️' },
   ]
 
   // Determine current page
@@ -61,7 +57,6 @@ export function DashboardHeader() {
     if (pathname === '/dashboard') return 'Dashboard'
     if (pathname.startsWith('/dashboard/konten')) return 'Generate Konten'
     if (pathname.startsWith('/dashboard/gambar')) return 'Generate Gambar'
-    if (pathname.startsWith('/dashboard/settings')) return 'Pengaturan'
     return 'Dashboard'
   }
 
@@ -109,20 +104,6 @@ export function DashboardHeader() {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-3">
-            {/* Credits - Desktop Only */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-yellow-50 rounded-lg border border-yellow-200">
-              <span className="text-lg">🪙</span>
-              <div>
-                <span className="text-sm font-semibold text-gray-800">
-                  {(isTrial || isPremium) ? '∞' : '50'}
-                </span>
-                <span className="text-xs text-gray-600 ml-1">Kredit</span>
-              </div>
-            </div>
-
-            {/* Subscription Badge */}
-            <SubscriptionBadge />
-
             {/* User Dropdown */}
             <div className="relative">
               <button
@@ -165,12 +146,12 @@ export function DashboardHeader() {
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <span className="text-base">💳</span>
-                      Tagihan & Langganan
+                      Billing
                     </Link>
                     <hr className="my-1 border-gray-200" />
                     <button
                       onClick={() => {
-                        // Handle logout logic here
+                        logout()
                         setIsDropdownOpen(false)
                       }}
                       className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"

@@ -1,6 +1,7 @@
 import { GoogleGenAI, Modality } from '@google/genai';
 import type { ContentGenerationConfig, GeneratedContent } from '@/types/content';
 import { CONTENT_TEMPLATES, PLATFORMS, TONES, TARGET_AUDIENCES } from '@/constants/contentTemplates';
+import { getAIModelForAPI, getAITemperatureForAPI, getAIMaxTokensForAPI, getAIApiKey } from '@/lib/ai-settings';
 
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 if (!API_KEY) {
@@ -59,20 +60,30 @@ export const generateContent = async (
   }
 
   try {
+    // Get user's AI settings
+    const [userModel, userTemperature, userMaxTokens] = await Promise.all([
+      getAIModelForAPI('gemini-3-pro'),
+      getAITemperatureForAPI(0.7),
+      getAIMaxTokensForAPI(2048)
+    ]);
+
     const prompt = buildContentPrompt(config);
-    console.log('Generating content with prompt:', {
+    console.log('Generating content with settings:', {
       contentType: config.contentType,
       tone: config.tone,
-      platform: config.platforms
+      platform: config.platforms,
+      model: userModel,
+      temperature: userTemperature,
+      maxTokens: userMaxTokens
     });
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: userModel,
       contents: prompt,
       config: {
         responseModalities: [Modality.TEXT],
-        temperature: 0.7,
-        maxOutputTokens: 2048,
+        temperature: userTemperature,
+        maxOutputTokens: userMaxTokens,
       },
     });
 

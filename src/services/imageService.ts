@@ -5,6 +5,7 @@ import {
   PRODUCT_PROMPT_TEMPLATE,
   POSTER_PROMPT_TEMPLATE,
 } from '@/constants/prompts';
+import { getAIImageModelForAPI, getAIModelForAPI, getAITemperatureForAPI, getAIMaxTokensForAPI, getAIApiKey } from '@/lib/ai-settings';
 
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 if (!API_KEY) {
@@ -49,9 +50,18 @@ const buildPrompt = (
     // Poster-specific replacements
     prompt = prompt
       .replace('{{poster_style}}', config.posterStyle || 'Modern Minimalist')
-      .replace('{{layout_template}}', config.layoutTemplate || 'Center Focus - Product sebagai hero di tengah')
-      .replace('{{color_scheme}}', config.colorScheme || 'Warm Appetizing - Orange, red, yellow tones')
-      .replace('{{typography_style}}', config.typographyStyle || 'Bold Sans Serif - Modern dan mudah dibaca');
+      .replace(
+        '{{layout_template}}',
+        config.layoutTemplate || 'Center Focus - Product sebagai hero di tengah'
+      )
+      .replace(
+        '{{color_scheme}}',
+        config.colorScheme || 'Warm Appetizing - Orange, red, yellow tones'
+      )
+      .replace(
+        '{{typography_style}}',
+        config.typographyStyle || 'Bold Sans Serif - Modern dan mudah dibaca'
+      );
   } else {
     // Realistic/product style replacements
     prompt = prompt.replace(
@@ -87,6 +97,12 @@ export const generateProductPhotography = async (
     const textPrompt = buildPrompt(config, true, isPoster);
 
     const generateSingleImage = async (): Promise<string> => {
+      // Get user's AI settings
+      const [userModel, userTemperature] = await Promise.all([
+        getAIImageModelForAPI('gemini-3-pro'),
+        getAITemperatureForAPI(0.4)
+      ]);
+
       if (!ai) {
         // Fallback to mock if no AI instance
         const mockSvg = `
@@ -96,7 +112,7 @@ export const generateProductPhotography = async (
               Generated Image Demo
             </text>
             <text x="50%" y="60%" font-family="Arial" font-size="12" fill="#9ca3af" text-anchor="middle" dy=".3em">
-              ${textPrompt.substring(0, 50)}...
+              Model: ${userModel}
             </text>
           </svg>
         `;
@@ -105,12 +121,13 @@ export const generateProductPhotography = async (
       }
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash-exp-image-generation',
+        model: userModel,
         contents: {
           parts: [imagePart, { text: textPrompt }],
         },
         config: {
           responseModalities: [Modality.IMAGE, Modality.TEXT],
+          temperature: userTemperature,
         },
       });
 
@@ -249,6 +266,12 @@ export const enhanceInstructions = async (
   }
 
   try {
+    // Get user's AI settings for text processing
+    const [userModel, userTemperature] = await Promise.all([
+      getAIModelForAPI('gemini-3-pro'),
+      getAITemperatureForAPI(0.3)
+    ]);
+
     const enhancePrompt = `Tingkatkan instruksi fotografi tambahan berikut menjadi lebih spesifik dan profesional:
 
 Instruksi User:
@@ -276,10 +299,11 @@ Contoh output format:
 Hasilkan instruksi tambahan yang lebih baik dan detail.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: userModel,
       contents: enhancePrompt,
       config: {
         responseModalities: [Modality.TEXT],
+        temperature: userTemperature,
       },
     });
 
@@ -304,7 +328,11 @@ export const generateImage = async (
       return await generateMockImages(config, isPoster);
     }
 
-    const images = await generateProductPhotography(imageFile, config, isPoster);
+    const images = await generateProductPhotography(
+      imageFile,
+      config,
+      isPoster
+    );
 
     // Add image size info to generated images
     return images.map((image) => ({

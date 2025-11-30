@@ -21,7 +21,7 @@ export default function DashboardPage() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
+        <Card className="border-gray-300 shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -36,7 +36,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-gray-300 shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -58,7 +58,7 @@ export default function DashboardPage() {
       <div className="mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Aksi Cepat</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="border-gray-300 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
             <Link href="/dashboard/konten">
               <CardHeader>
                 <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mb-3">
@@ -77,7 +77,7 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="border-gray-300 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
             <Link href="/dashboard/gambar">
               <CardHeader>
                 <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mb-3">
@@ -96,7 +96,7 @@ export default function DashboardPage() {
             </Link>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="border-gray-300 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
             <Link href="/dashboard/caption">
               <CardHeader>
                 <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mb-3">
@@ -120,7 +120,7 @@ export default function DashboardPage() {
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card>
+        <Card className="border-gray-300 shadow-md">
           <CardHeader>
             <CardTitle>Aktivitas Terbaru</CardTitle>
             <CardDescription>Konten dan gambar yang baru saja Anda buat</CardDescription>
@@ -158,7 +158,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-gray-300 shadow-md">
           <CardHeader>
             <CardTitle>Tips & Saran</CardTitle>
             <CardDescription>Panduan untuk memaksimalkan Asisten UMKM</CardDescription>

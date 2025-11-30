@@ -1,19 +1,43 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AuthLayout } from '@/components/layout/auth-layout'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Get redirect parameter from URL
+  const redirectTo = searchParams.get('redirect') || '/dashboard'
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me')
+        if (response.ok) {
+          // User is already logged in, redirect to intended page
+          window.location.href = redirectTo
+        }
+      } catch (error) {
+        // User is not logged in, stay on login page
+        console.log('User not authenticated')
+      }
+    }
+
+    checkAuth()
+  }, [redirectTo])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -46,8 +70,8 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login gagal')
       }
 
-      // Redirect to dashboard or home
-      window.location.href = '/dashboard'
+      // Redirect to the intended page or dashboard
+      window.location.href = redirectTo
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat login')

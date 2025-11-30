@@ -10,12 +10,29 @@ export interface UserData {
   emailVerified: boolean
   isActive: boolean
   createdAt: Date
+  phone?: string
+  avatar?: string
+  businessName?: string
+  businessCategory?: string
+  businessDescription?: string
+  businessAddress?: string
+  businessPhone?: string
+  businessWebsite?: string
+  storeName?: string
+  storeLogo?: string
+  storeImage?: string
+  storeAddress?: string
+  storePhone?: string
+  primaryColor?: string
+  secondaryColor?: string
+  thirdColor?: string
 }
 
 interface UserContextType {
   user: UserData | null
   isLoading: boolean
   refreshUser: () => Promise<void>
+  logout: () => Promise<void>
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -58,6 +75,33 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     await fetchUser()
   }
 
+  const logout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+
+      if (response.ok) {
+        setUser(null)
+        // Redirect to login page
+        window.location.href = '/auth/login'
+      } else {
+        // If API fails, still clear user state and redirect
+        setUser(null)
+        console.error('Logout failed')
+        window.location.href = '/auth/login'
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Even if there's an error, clear user state and redirect
+      setUser(null)
+      window.location.href = '/auth/login'
+    }
+  }
+
   useEffect(() => {
     fetchUser()
   }, [])
@@ -65,7 +109,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const value: UserContextType = {
     user,
     isLoading,
-    refreshUser
+    refreshUser,
+    logout
   }
 
   return (

@@ -369,7 +369,7 @@ export default function GambarPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
         {/* Input Form */}
-        <Card>
+        <Card className="border-gray-300 shadow-md">
           <CardHeader>
             <CardTitle>Detail Gambar</CardTitle>
             <CardDescription>
@@ -884,7 +884,7 @@ export default function GambarPage() {
         </Card>
 
         {/* Output Preview */}
-        <Card>
+        <Card className="border-gray-300 shadow-md">
           <CardHeader>
             <CardTitle>Hasil Generate</CardTitle>
             <CardDescription>
@@ -1028,7 +1028,7 @@ export default function GambarPage() {
 
     
       {/* Tips & Tricks */}
-      <Card className='mt-8'>
+      <Card className='mt-8 border-gray-300 shadow-md'>
         <CardHeader>
           <CardTitle>Tips & Tricks</CardTitle>
         </CardHeader>
