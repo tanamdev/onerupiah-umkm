@@ -55,7 +55,7 @@ export default function GambarPage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [imageScale, setImageScale] = useState(1);
   const [foodSuggestions, setFoodSuggestions] = useState<string[]>([]);
-  const [showFoodSuggestions, setShowFoodSuggestions] = useState(false)
+  const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [config, setConfig] = useState<GenerationConfig>({
     platingStyle: PRODUCT_STYLES[0],
@@ -295,7 +295,9 @@ export default function GambarPage() {
 
   const handleMagicEnhance = async () => {
     if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
-      setError('Magic enhancement membutuhkan NEXT_PUBLIC_GEMINI_API_KEY di .env.local');
+      setError(
+        'Magic enhancement membutuhkan NEXT_PUBLIC_GEMINI_API_KEY di .env.local'
+      );
       return;
     }
 
@@ -334,8 +336,18 @@ export default function GambarPage() {
       {/* Style Selection */}
       <div className='grid grid-cols-2 lg:grid-cols-2 gap-6 mb-8 max-w-2xl mx-auto'>
         {[
-          { style: 'realistic', label: 'Realistic', icon: '📸', description: 'Foto profesional dengan kualitas tinggi' },
-          { style: 'poster', label: 'Poster', icon: '🎨', description: 'Gaya poster artistik dan menarik' },
+          {
+            style: 'realistic',
+            label: 'Realistic',
+            icon: '📸',
+            description: 'Foto profesional dengan kualitas tinggi',
+          },
+          {
+            style: 'poster',
+            label: 'Poster',
+            icon: '🎨',
+            description: 'Gaya poster artistik dan menarik',
+          },
         ].map((item) => (
           <Card
             key={item.style}
@@ -463,7 +475,7 @@ export default function GambarPage() {
                   className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                     isDragging
                       ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-300 hover:border-gray-400'
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <div className='text-4xl mb-2'>
@@ -583,7 +595,7 @@ export default function GambarPage() {
               </Label>
               <div className='space-y-3'>
                 <select
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
+                  className='w-full px-3 py-2 border border-gray-200 rounded-lg'
                   value={config.imageSize?.id || ''}
                   onChange={(e) => {
                     const selectedSize = IMAGE_SIZES.find(
@@ -657,163 +669,164 @@ export default function GambarPage() {
             </div>
 
             {selectedStyle === 'poster' ? (
-            // Poster-specific controls
-            <>
-              <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
-                  🎨 Gaya Poster
-                </Label>
-                <select
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
-                  value={config.posterStyle}
-                  onChange={(e) =>
-                    setConfig({ ...config, posterStyle: e.target.value })
-                  }
-                >
-                  {POSTER_STYLES.map((style) => (
-                    <option key={style} value={style}>
-                      {style}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              // Poster-specific controls
+              <>
+                <div>
+                  <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                    🎨 Gaya Poster
+                  </Label>
+                  <select
+                    className='w-full px-3 py-2 border border-gray-200 rounded-lg'
+                    value={config.posterStyle}
+                    onChange={(e) =>
+                      setConfig({ ...config, posterStyle: e.target.value })
+                    }
+                  >
+                    {POSTER_STYLES.map((style) => (
+                      <option key={style} value={style}>
+                        {style}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
-                  📐 Layout Template
-                </Label>
-                <select
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
-                  value={config.layoutTemplate}
-                  onChange={(e) =>
-                    setConfig({ ...config, layoutTemplate: e.target.value })
-                  }
-                >
-                  {POSTER_LAYOUT_TEMPLATES.map((template) => (
-                    <option key={template} value={template}>
-                      {template}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div>
+                  <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                    📐 Layout Template
+                  </Label>
+                  <select
+                    className='w-full px-3 py-2 border border-gray-200 rounded-lg'
+                    value={config.layoutTemplate}
+                    onChange={(e) =>
+                      setConfig({ ...config, layoutTemplate: e.target.value })
+                    }
+                  >
+                    {POSTER_LAYOUT_TEMPLATES.map((template) => (
+                      <option key={template} value={template}>
+                        {template}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
-                  🎨 Color Scheme
-                </Label>
-                <select
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
-                  value={config.colorScheme}
-                  onChange={(e) =>
-                    setConfig({ ...config, colorScheme: e.target.value })
-                  }
-                >
-                  {POSTER_COLOR_SCHEMES.map((scheme) => (
-                    <option key={scheme} value={scheme}>
-                      {scheme}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div>
+                  <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                    🎨 Color Scheme
+                  </Label>
+                  <select
+                    className='w-full px-3 py-2 border border-gray-200 rounded-lg'
+                    value={config.colorScheme}
+                    onChange={(e) =>
+                      setConfig({ ...config, colorScheme: e.target.value })
+                    }
+                  >
+                    {POSTER_COLOR_SCHEMES.map((scheme) => (
+                      <option key={scheme} value={scheme}>
+                        {scheme}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
-                  🔤 Typography Style
-                </Label>
-                <select
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
-                  value={config.typographyStyle}
-                  onChange={(e) =>
-                    setConfig({ ...config, typographyStyle: e.target.value })
-                  }
-                >
-                  {POSTER_TYPOGRAPHY_STYLES.map((typography) => (
-                    <option key={typography} value={typography}>
-                      {typography}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div>
+                  <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                    🔤 Typography Style
+                  </Label>
+                  <select
+                    className='w-full px-3 py-2 border border-gray-200 rounded-lg'
+                    value={config.typographyStyle}
+                    onChange={(e) =>
+                      setConfig({ ...config, typographyStyle: e.target.value })
+                    }
+                  >
+                    {POSTER_TYPOGRAPHY_STYLES.map((typography) => (
+                      <option key={typography} value={typography}>
+                        {typography}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
-                  🖼️ Background Style
-                </Label>
-                <select
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
-                  value={config.backgroundStyle}
-                  onChange={(e) =>
-                    setConfig({ ...config, backgroundStyle: e.target.value })
-                  }
-                >
-                  {BACKGROUND_STYLES.map((style) => (
-                    <option key={style} value={style}>
-                      {style}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </>
-          ) : (
-            // Realistic-specific controls
-            <>
-              <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
-                  📸 Gaya Fotografi
-                </Label>
-                <select
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
-                  value={config.platingStyle}
-                  onChange={(e) =>
-                    setConfig({ ...config, platingStyle: e.target.value })
-                  }
-                >
-                  {PRODUCT_STYLES.map((style) => (
-                    <option key={style} value={style}>
-                      {style}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div>
+                  <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                    🖼️ Background Style
+                  </Label>
+                  <select
+                    className='w-full px-3 py-2 border border-gray-200 rounded-lg'
+                    value={config.backgroundStyle}
+                    onChange={(e) =>
+                      setConfig({ ...config, backgroundStyle: e.target.value })
+                    }
+                  >
+                    {BACKGROUND_STYLES.map((style) => (
+                      <option key={style} value={style}>
+                        {style}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            ) : (
+              // Realistic-specific controls
+              <>
+                <div>
+                  <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                    📸 Gaya Fotografi
+                  </Label>
+                  <select
+                    className='w-full px-3 py-2 border border-gray-200 rounded-lg'
+                    value={config.platingStyle}
+                    onChange={(e) =>
+                      setConfig({ ...config, platingStyle: e.target.value })
+                    }
+                  >
+                    {PRODUCT_STYLES.map((style) => (
+                      <option key={style} value={style}>
+                        {style}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <Label className='block text-sm font-medium text-gray-700 mb-2'>
-                  🖼️ Background Style
-                </Label>
-                <select
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg'
-                  value={config.backgroundStyle}
-                  onChange={(e) =>
-                    setConfig({ ...config, backgroundStyle: e.target.value })
-                  }
-                >
-                  {BACKGROUND_STYLES.map((style) => (
-                    <option key={style} value={style}>
-                      {style}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </>
-          )}
+                <div>
+                  <Label className='block text-sm font-medium text-gray-700 mb-2'>
+                    🖼️ Background Style
+                  </Label>
+                  <select
+                    className='w-full px-3 py-2 border border-gray-200 rounded-lg'
+                    value={config.backgroundStyle}
+                    onChange={(e) =>
+                      setConfig({ ...config, backgroundStyle: e.target.value })
+                    }
+                  >
+                    {BACKGROUND_STYLES.map((style) => (
+                      <option key={style} value={style}>
+                        {style}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
 
             {/* Extra Instructions */}
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className='flex items-center gap-2 mb-2'>
                 <Label className='text-sm font-medium text-gray-700'>
-                  Instruksi Tambahan <span className="text-gray-400">(opsional)</span>
+                  Instruksi Tambahan{' '}
+                  <span className='text-gray-400'>(opsional)</span>
                 </Label>
                 <button
-                  type="button"
+                  type='button'
                   onClick={handleMagicEnhance}
                   disabled={!config.extraInstructions || isEnhancing}
-                  className="p-1.5 rounded-md bg-purple-100 hover:bg-purple-200 text-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group relative"
-                  title="Perbaiki instruksi dengan AI"
+                  className='p-1.5 rounded-md bg-purple-100 hover:bg-purple-200 text-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group relative'
+                  title='Perbaiki instruksi dengan AI'
                 >
                   {isEnhancing ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className='w-4 h-4 animate-spin' />
                   ) : (
-                    <Wand2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <Wand2 className='w-4 h-4 group-hover:scale-110 transition-transform' />
                   )}
                 </button>
               </div>
@@ -828,8 +841,8 @@ export default function GambarPage() {
                 disabled={isEnhancing}
               />
               {isEnhancing && (
-                <div className="flex items-center gap-2 text-sm text-purple-600 animate-pulse mt-2">
-                  <Loader2 className="w-3 h-3 animate-spin" />
+                <div className='flex items-center gap-2 text-sm text-purple-600 animate-pulse mt-2'>
+                  <Loader2 className='w-3 h-3 animate-spin' />
                   <span>Memperbaiki instruksi dengan AI...</span>
                 </div>
               )}
@@ -1013,67 +1026,7 @@ export default function GambarPage() {
         </Card>
       </div>
 
-      {/* Recent Generations */}
-      <Card className='mt-8'>
-        <CardHeader>
-          <CardTitle>Gambar Terbaru</CardTitle>
-          <CardDescription>Histori gambar yang Anda generate</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isClient && savedImages.length > 0 ? (
-            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
-              {savedImages
-                .slice(-8)
-                .reverse()
-                .map((image: any, index: number) => (
-                  <div key={index} className='relative group'>
-                    <img
-                      src={image.imageUrl}
-                      alt={`Historical Image ${index + 1}`}
-                      className='w-full aspect-square object-cover rounded-lg cursor-pointer hover:border-purple-300 transition-colors border-2 border-transparent'
-                      onClick={() => openImagePreview(image.imageUrl)}
-                    />
-                    <div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100'>
-                      <div className='flex gap-1'>
-                        <Button
-                          size='sm'
-                          className='bg-white text-gray-900 hover:bg-gray-100 p-2'
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openImagePreview(image.imageUrl);
-                          }}
-                        >
-                          🔍
-                        </Button>
-                        <Button
-                          size='sm'
-                          className='bg-white text-gray-900 hover:bg-gray-100 p-2'
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            downloadImage(image.imageUrl, index);
-                          }}
-                        >
-                          📥
-                        </Button>
-                      </div>
-                    </div>
-                    <div className='absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded'>
-                      {new Date(image.timestamp).toLocaleDateString()}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          ) : (
-            <div className='text-center py-12'>
-              <div className='text-4xl mb-4'>📂</div>
-              <p className='text-gray-600'>
-                {isClient ? 'Belum ada gambar yang tersimpan' : 'Loading...'}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
+    
       {/* Tips & Tricks */}
       <Card className='mt-8'>
         <CardHeader>

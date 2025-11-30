@@ -24,26 +24,26 @@ export default function SettingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
-                  <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                  <div className="px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
                     John Doe
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                  <div className="px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
                     john.doe@example.com
                   </div>
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Nama Bisnis</label>
-                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                <div className="px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
                   Toko Sample
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Kategori Bisnis</label>
-                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                <div className="px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
                   Fashion & Aksesoris
                 </div>
               </div>
@@ -59,7 +59,7 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Tone of Voice</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                <select className="w-full px-3 py-2 border border-gray-200 rounded-lg">
                   <option>Professional</option>
                   <option>Casual</option>
                   <option>Friendly</option>
@@ -68,7 +68,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                <select className="w-full px-3 py-2 border border-gray-200 rounded-lg">
                   <option>General</option>
                   <option>Young Adults (18-25)</option>
                   <option>Adults (25-35)</option>
