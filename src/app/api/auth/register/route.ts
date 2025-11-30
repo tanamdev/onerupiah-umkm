@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     await prisma.subscription.create({
       data: {
         userId: newUser.id,
-        plan: 'FREE',
+        plan: 'TRIAL',
         status: 'ACTIVE',
         startDate: trialStartDate,
         endDate: trialEndDate,

@@ -1,4 +1,6 @@
 import { DashboardHeader } from '@/components/layout/dashboard-header'
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
+import { UserProvider } from '@/contexts/UserContext'
 
 export default function DashboardLayout({
   children,
@@ -6,17 +8,17 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardHeader
-        userName="John Doe"
-        userEmail="john.doe@example.com"
-        userPlan="premium"
-      />
-      <main className="pt-16 md:pt-16">
-        {/* Spacer for mobile navigation */}
-        <div className="md:hidden h-14"></div>
-        {children}
-      </main>
-    </div>
+    <UserProvider>
+      <SubscriptionProvider>
+        <div className="min-h-screen bg-gray-50">
+          <DashboardHeader />
+          <main className="pt-16 md:pt-16">
+            {/* Spacer for mobile navigation */}
+            <div className="md:hidden h-14"></div>
+            {children}
+          </main>
+        </div>
+      </SubscriptionProvider>
+    </UserProvider>
   )
 }

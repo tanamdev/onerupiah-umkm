@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from 'jose'
 import { NextRequest } from 'next/server'
 
 const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+  process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production'
 )
 
 export async function generateToken(payload: any): Promise<string> {

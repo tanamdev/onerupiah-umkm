@@ -5,32 +5,49 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { SubscriptionBadge } from '@/components/subscription/SubscriptionBadge'
+import { useSubscription } from '@/contexts/SubscriptionContext'
+import { useUser } from '@/contexts/UserContext'
 
-interface DashboardHeaderProps {
-  userName?: string
-  userEmail?: string
-  userPlan?: 'free' | 'premium' | 'enterprise'
-}
-
-export function DashboardHeader({
-  userName = "User",
-  userEmail = "user@example.com",
-  userPlan = "free"
-}: DashboardHeaderProps) {
+export function DashboardHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const pathname = usePathname()
+  const { isTrial, isPremium, isFree } = useSubscription()
+  const { user, isLoading } = useUser()
 
-  const planColors = {
-    free: 'bg-gray-100 text-gray-800',
-    premium: 'bg-blue-100 text-blue-800',
-    enterprise: 'bg-purple-100 text-purple-800'
+  // Show loading skeleton while user data is loading
+  if (isLoading) {
+    return (
+      <header className="bg-white/95 backdrop-blur-sm shadow-sm border-b fixed w-full top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <a className="flex items-center gap-3" href="/dashboard">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-sm">
+                  <span className="text-white text-lg font-bold">🚀</span>
+                </div>
+                <div>
+                  <span className="text-xl font-bold text-gray-900">Asisten UMKM</span>
+                  <div className="text-xs text-gray-500">Dashboard</div>
+                </div>
+              </a>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="animate-pulse">
+                <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
+              </div>
+              <div className="animate-pulse">
+                <div className="w-9 h-9 bg-gray-200 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+    )
   }
 
-  const planLabels = {
-    free: 'Gratis',
-    premium: 'Premium',
-    enterprise: 'Enterprise'
-  }
+  const userName = user?.name || "User"
+  const userEmail = user?.email || "user@example.com"
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: '🏠' },
@@ -97,16 +114,14 @@ export function DashboardHeader({
               <span className="text-lg">🪙</span>
               <div>
                 <span className="text-sm font-semibold text-gray-800">
-                  {userPlan === 'free' ? '50' : '∞'}
+                  {(isTrial || isPremium) ? '∞' : '50'}
                 </span>
                 <span className="text-xs text-gray-600 ml-1">Kredit</span>
               </div>
             </div>
 
-            {/* Plan Badge */}
-            <Badge className={`${planColors[userPlan]} border-0 px-3 py-1 text-sm font-medium`}>
-              {planLabels[userPlan]}
-            </Badge>
+            {/* Subscription Badge */}
+            <SubscriptionBadge />
 
             {/* User Dropdown */}
             <div className="relative">
@@ -134,21 +149,8 @@ export function DashboardHeader({
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900">{userName}</p>
                     <p className="text-xs text-gray-500">{userEmail}</p>
-                    <div className="mt-2">
-                      <Badge className={`${planColors[userPlan]} border-0 text-xs`}>
-                        {planLabels[userPlan]} Plan
-                      </Badge>
-                    </div>
-                  </div>
+                      </div>
                   <div className="py-1">
-                    <Link
-                      href="/dashboard/profile"
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <span className="text-base">👤</span>
-                      Profil Saya
-                    </Link>
                     <Link
                       href="/dashboard/settings"
                       className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -158,7 +160,7 @@ export function DashboardHeader({
                       Pengaturan
                     </Link>
                     <Link
-                      href="/dashboard/billing"
+                      href="/pricing"
                       className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       onClick={() => setIsDropdownOpen(false)}
                     >

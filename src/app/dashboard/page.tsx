@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { SubscriptionStatusCard } from '@/components/subscription/SubscriptionBadge'
 
 export default function DashboardPage() {
   return (
@@ -50,20 +51,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Sisa Kredit</p>
-                <p className="text-2xl font-bold text-gray-900">∞</p>
-                <Badge className="bg-blue-100 text-blue-800">Premium</Badge>
-              </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">🪙</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <SubscriptionStatusCard />
       </div>
 
       {/* Quick Actions */}
