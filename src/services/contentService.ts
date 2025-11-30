@@ -2,6 +2,7 @@ import { GoogleGenAI, Modality } from '@google/genai';
 import type { ContentGenerationConfig, GeneratedContent } from '@/types/content';
 import { CONTENT_TEMPLATES, PLATFORMS, TONES, TARGET_AUDIENCES } from '@/constants/contentTemplates';
 import { getAIModelForAPI, getAITemperatureForAPI, getAIMaxTokensForAPI, getAIApiKey } from '@/lib/ai-settings';
+import { activityLogger } from './activityLogger';
 
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 if (!API_KEY) {
@@ -54,12 +55,12 @@ const extractTitle = (content: string): string | undefined => {
 export const generateContent = async (
   config: ContentGenerationConfig
 ): Promise<GeneratedContent> => {
-  if (!ai) {
-    // Fallback to mock generation
-    return generateMockContent(config);
-  }
+  const operation = async (): Promise<GeneratedContent> => {
+    if (!ai) {
+      // Fallback to mock generation
+      return generateMockContent(config);
+    }
 
-  try {
     // Get user's AI settings
     const [userModel, userTemperature, userMaxTokens] = await Promise.all([
       getAIModelForAPI('gemini-3-pro'),
@@ -108,12 +109,30 @@ export const generateContent = async (
     };
 
     return generatedContent;
+  };
 
+  // Use activity logger with performance tracking
+  const enhancedConfig = {
+    ...config,
+    imageMode: 'content', // for logging purposes
+  };
+
+  try {
+    return await activityLogger.withPerformanceTracking('content', operation, enhancedConfig);
   } catch (error) {
     console.error('Error generating content:', error);
 
+    // Log failed generation
+    await activityLogger.logContentGeneration(
+      config.contentType,
+      config,
+      false,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
+
     // Fallback to mock generation
-    return generateMockContent(config);
+    const mockResult = generateMockContent(config);
+    return mockResult;
   }
 };
 

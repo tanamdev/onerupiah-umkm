@@ -1,6 +1,7 @@
 import { GoogleGenAI, Modality } from '@google/genai';
 import type { GenerationConfig, GeneratedImage } from '@/types/image';
 import { getAIImageModelForAPI, getAIModelForAPI, getAITemperatureForAPI, getAIMaxTokensForAPI, getAIApiKey } from '@/lib/ai-settings';
+import { activityLogger } from './activityLogger';
 
 // Import modularized services
 import {
@@ -61,13 +62,13 @@ export const generateProductPhotography = async (
   config: GenerationConfig,
   isPoster: boolean = false
 ): Promise<GeneratedImage[]> => {
-  if (!ai) {
-    throw new Error(
-      'API Gemini tidak tersedia. Silakan setup API key terlebih dahulu.'
-    );
-  }
+  const operation = async (): Promise<GeneratedImage[]> => {
+    if (!ai) {
+      throw new Error(
+        'API Gemini tidak tersedia. Silakan setup API key terlebih dahulu.'
+      );
+    }
 
-  try {
     const imagePart = await fileToGenerativePart(imageFile);
     const textPrompt = buildPrompt(config);
 
@@ -114,8 +115,40 @@ export const generateProductPhotography = async (
       prompt: textPrompt,
       timestamp: new Date(),
     }));
+  };
+
+  // Determine image mode for logging
+  const imageMode = isPoster ? 'poster' : (isFoodMode(config) ? 'realistic' : 'product');
+  const enhancedConfig = {
+    ...config,
+    imageMode,
+  };
+
+  try {
+    const result = await activityLogger.withPerformanceTracking('image', operation, enhancedConfig);
+
+    // Log successful generation
+    await activityLogger.logImageGeneration(
+      imageMode,
+      config,
+      true,
+      undefined,
+      undefined,
+      result.length
+    );
+
+    return result;
   } catch (error) {
     console.error('Error generating images:', error);
+
+    // Log failed generation
+    await activityLogger.logImageGeneration(
+      imageMode,
+      config,
+      false,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
+
     throw error;
   }
 };

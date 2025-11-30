@@ -9,15 +9,26 @@ import { useUser } from '@/contexts/UserContext'
 import { useSubscription } from '@/contexts/SubscriptionContext'
 import { AI_PROVIDERS, AIProvider, AISettings } from '@/types/ai'
 
+interface ActivityStats {
+  totalContentGenerations: number
+  totalImageGenerations: number
+  todayContentGenerations: number
+  todayImageGenerations: number
+  weeklyContentGenerations: number
+  weeklyImageGenerations: number
+  monthlyContentGenerations: number
+  monthlyImageGenerations: number
+  mostUsedContentType?: string
+  mostUsedImageMode?: string
+  mostUsedPlatform?: string
+  mostUsedImageSize?: string
+}
+
 export default function SettingsPage() {
   const { user, isLoading: userLoading } = useUser()
   const { isTrial, isPremium, isFree, daysLeft, subscription } = useSubscription()
-  const [userStats, setUserStats] = useState({
-    contentGenerated: 0,
-    imagesGenerated: 0,
-    autoReplies: 0,
-    creditsUsed: 0
-  })
+  const [stats, setStats] = useState<ActivityStats | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Profile state
   const [profileData, setProfileData] = useState({
@@ -106,29 +117,25 @@ export default function SettingsPage() {
     }
   }, [user])
 
-  useEffect(() => {
-    // Fetch user statistics from API
-    const fetchUserStats = async () => {
-      try {
-        const response = await fetch('/api/user/stats')
-        if (response.ok) {
-          const data = await response.json()
-          setUserStats(data)
-        }
-      } catch (error) {
-        console.error('Failed to fetch user stats:', error)
-        // Set default values on error
-        setUserStats({
-          contentGenerated: Math.floor(Math.random() * 200),
-          imagesGenerated: Math.floor(Math.random() * 150),
-          autoReplies: Math.floor(Math.random() * 500),
-          creditsUsed: Math.floor(Math.random() * 100)
-        })
-      }
-    }
+  const fetchActivityStats = async () => {
+    if (!user?.id) return
 
-    fetchUserStats()
-  }, [])
+    try {
+      const response = await fetch(`/api/activity/stats?userId=${user.id}&period=all`)
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data.data.stats)
+      }
+    } catch (error) {
+      console.error('Error fetching activity stats:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchActivityStats()
+  }, [user])
 
   
   // Handle profile update
@@ -762,28 +769,70 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Statistik Akun</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Konten Dibuat</span>
-                <span className="text-sm font-medium">{userStats.contentGenerated}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Gambar Dihasilkan</span>
-                <span className="text-sm font-medium">{userStats.imagesGenerated}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Auto Reply</span>
-                <span className="text-sm font-medium">{userStats.autoReplies}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Sisa Kredit</span>
-                <span className="text-sm font-medium">
-                  {(isTrial || isPremium) ? '∞' : '50'}
-                </span>
-              </div>
+            <CardContent className="space-y-4">
+              {isLoading ? (
+                <div className="space-y-3">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-1"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-1"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-1"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+              ) : stats ? (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Konten</span>
+                    <span className="text-sm font-medium">{stats.totalContentGenerations}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Gambar</span>
+                    <span className="text-sm font-medium">{stats.totalImageGenerations}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Hari Ini</span>
+                    <span className="text-sm font-medium">
+                      📝 {stats.todayContentGenerations} • 🎨 {stats.todayImageGenerations}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Minggu Ini</span>
+                    <span className="text-sm font-medium">
+                      📝 {stats.weeklyContentGenerations} • 🎨 {stats.weeklyImageGenerations}
+                    </span>
+                  </div>
+                  {stats.mostUsedContentType && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Konten Populer</span>
+                      <Badge className="bg-blue-100 text-blue-800 text-xs">
+                        {stats.mostUsedContentType}
+                      </Badge>
+                    </div>
+                  )}
+                  {stats.mostUsedImageMode && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Mode Gambar</span>
+                      <Badge className="bg-green-100 text-green-800 text-xs">
+                        {stats.mostUsedImageMode}
+                      </Badge>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center text-gray-500 py-4">
+                  <p>Belum ada data statistik</p>
+                </div>
+              )}
+
               <div className="pt-3 border-t border-gray-100">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Status</span>
+                  <span className="text-sm text-gray-600">Status Akun</span>
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     isTrial
                       ? 'bg-yellow-100 text-yellow-800'

@@ -62,6 +62,7 @@ model User {
   imageGenerations ImageGeneration[]
   aiAssistants AiAssistant[]
   userSessions UserSession[]
+  activityLogs ActivityLog[]
 
   @@map("users")
 }
@@ -207,4 +208,40 @@ enum AssistantType {
   CONTENT_HELP
   MARKETING_ADVICE
   BUSINESS_TIPS
+}
+
+// Activity log model for comprehensive user activity tracking
+model ActivityLog {
+  id           String          @id @default(cuid())
+  userId       String
+  activityType ActivityType
+  action       String
+  description  String
+  metadata     Json?           // Flexible metadata for additional data
+  ipAddress    String?
+  userAgent    String?
+  success      Boolean         @default(true)
+  errorMessage String?
+  duration     Int?            // Duration in milliseconds
+  timestamp    DateTime        @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activity_logs")
+}
+
+// Enum for activity types
+enum ActivityType {
+  LOGIN
+  LOGOUT
+  CONTENT_GENERATION
+  IMAGE_GENERATION
+  PROFILE_UPDATE
+  SETTINGS_UPDATE
+  PASSWORD_CHANGE
+  SUBSCRIPTION_CHANGE
+  API_ACCESS
+  DOWNLOAD
+  UPLOAD
 }

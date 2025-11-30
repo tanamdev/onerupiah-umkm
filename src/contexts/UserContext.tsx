@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { activityLogger } from '@/services/activityLogger'
 
 export interface UserData {
   id: string
@@ -59,6 +60,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       if (response.ok) {
         const data = await response.json()
         setUser(data.user)
+
+        // Log login activity and set user info in activity logger
+        await activityLogger.logLogin()
+        activityLogger.setUserInfo(data.user.id, data.user.email)
       } else {
         setUser(null)
       }
@@ -77,6 +82,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Log logout activity before clearing user state
+      if (user) {
+        await activityLogger.logLogout()
+      }
+
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
         headers: {
@@ -105,6 +115,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   useEffect(() => {
     fetchUser()
   }, [])
+
+  // Update activity logger with user info when user changes
+  useEffect(() => {
+    if (user) {
+      activityLogger.setUserInfo(user.id, user.email)
+    }
+  }, [user])
 
   const value: UserContextType = {
     user,

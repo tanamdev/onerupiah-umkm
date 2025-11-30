@@ -50,6 +50,7 @@ export function DashboardHeader() {
     { name: 'Dashboard', href: '/dashboard', icon: '🏠' },
     { name: 'Generate Konten', href: '/dashboard/konten', icon: '✍️' },
     { name: 'Generate Gambar', href: '/dashboard/gambar', icon: '🎨' },
+    { name: 'Aktivitas', href: '/dashboard/activity', icon: '📊' },
   ]
 
   // Determine current page
@@ -57,6 +58,7 @@ export function DashboardHeader() {
     if (pathname === '/dashboard') return 'Dashboard'
     if (pathname.startsWith('/dashboard/konten')) return 'Generate Konten'
     if (pathname.startsWith('/dashboard/gambar')) return 'Generate Gambar'
+    if (pathname.startsWith('/dashboard/activity')) return 'Aktivitas'
     return 'Dashboard'
   }
 
