@@ -9,7 +9,19 @@ import Link from 'next/link'
 import { useSubscription } from '@/contexts/SubscriptionContext'
 
 export default function PricingPage() {
-  const { isTrial, isPremium, daysLeft, refreshSubscription } = useSubscription()
+  let subscriptionContext
+  try {
+    subscriptionContext = useSubscription()
+  } catch {
+    subscriptionContext = {
+      isTrial: false,
+      isPremium: false,
+      daysLeft: 0,
+      refreshSubscription: async () => {}
+    }
+  }
+
+  const { isTrial, isPremium, daysLeft, refreshSubscription } = subscriptionContext
   const [isUpgrading, setIsUpgrading] = useState(false)
 
   const plans = [

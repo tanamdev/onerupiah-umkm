@@ -84,10 +84,23 @@ export async function GET(request: NextRequest) {
 
 // Helper functions
 function getClientIP(request: NextRequest): string {
-  return request.headers.get('x-forwarded-for') ||
-         request.headers.get('x-real-ip') ||
-         request.ip ||
-         'unknown';
+  const headerCandidates = [
+    'x-forwarded-for',
+    'x-real-ip',
+    'cf-connecting-ip',
+    'true-client-ip',
+    'x-client-ip',
+  ];
+
+  for (const headerName of headerCandidates) {
+    const rawHeader = request.headers.get(headerName);
+    if (!rawHeader) continue;
+
+    const ip = rawHeader.split(',')[0]?.trim();
+    if (ip) return ip;
+  }
+
+  return process.env.NODE_ENV === 'development' ? '127.0.0.1' : 'unknown';
 }
 
 function getUserAgent(request: NextRequest): string {

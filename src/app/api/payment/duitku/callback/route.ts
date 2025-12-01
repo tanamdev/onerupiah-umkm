@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { Prisma } from '@prisma/client'
 import { duitkuService } from '@/services/duitkuService'
 import { BillingService } from '@/services/billingService'
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
         )
 
         // Create subscription for successful payment
-        const { packageId, period, metadata } = transaction.metadata
+        const { packageId, period, metadata } = parseTransactionMetadata(transaction.metadata)
         if (packageId && period) {
           try {
             const packageData = await BillingService.getPackageById(packageId)
@@ -155,4 +156,22 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+type TransactionMetadata = {
+  packageId?: string
+  period?: string
+  metadata?: {
+    packageName?: string
+    billingPeriod?: string
+    [key: string]: unknown
+  }
+  [key: string]: unknown
+}
+
+function parseTransactionMetadata(metadata: Prisma.JsonValue | null | undefined): TransactionMetadata {
+  if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+    return metadata as TransactionMetadata
+  }
+  return {}
 }

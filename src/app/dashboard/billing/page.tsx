@@ -14,7 +14,7 @@ interface Package {
   price: number
   yearlyPrice?: number
   currency: string
-  features: any
+  features: Record<string, unknown> | null
   isActive: boolean
   maxContentGenerations?: number
   maxImageGenerations?: number
@@ -111,6 +111,19 @@ export default function BillingPage() {
       return `Rp ${amount.toLocaleString('id-ID')}`
     }
     return `$${(amount / 100).toFixed(2)}`
+  }
+
+  const formatFeatureValue = (value: unknown): string => {
+    if (typeof value === 'string') return value
+    if (typeof value === 'number' || typeof value === 'boolean') return value.toString()
+    if (Array.isArray(value) || (value && typeof value === 'object')) {
+      try {
+        return JSON.stringify(value)
+      } catch {
+        return ''
+      }
+    }
+    return ''
   }
 
   const formatDate = (dateString: string): string => {
@@ -381,7 +394,7 @@ export default function BillingPage() {
                         {pkg.features && typeof pkg.features === 'object' && Object.entries(pkg.features).slice(0, 5).map(([key, value]) => (
                           <div key={key} className="flex items-start gap-2">
                             <span className="text-green-500 mt-0.5 text-xs">✓</span>
-                            <span className="text-xs text-gray-700">{value}</span>
+                            <span className="text-xs text-gray-700">{formatFeatureValue(value)}</span>
                           </div>
                         ))}
                         {pkg.features && typeof pkg.features === 'object' && Object.keys(pkg.features).length > 5 && (

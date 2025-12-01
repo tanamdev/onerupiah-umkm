@@ -27,6 +27,15 @@ export interface UserData {
   primaryColor?: string
   secondaryColor?: string
   thirdColor?: string
+  aiProvider?: string
+  aiModel?: string
+  aiApiKey?: string
+  aiTemperature?: number
+  aiMaxTokens?: number
+  aiToneOfVoice?: string
+  aiTargetAudience?: string
+  aiPlatforms?: string[]
+  aiCustomInstructions?: string
 }
 
 interface UserContextType {

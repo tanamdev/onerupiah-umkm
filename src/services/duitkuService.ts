@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import type { TransactionStatus } from '@prisma/client';
 
 interface DuitkuCreateInvoiceRequest {
   paymentAmount: number;
@@ -75,7 +76,6 @@ interface DuitkuTransactionStatusResponse {
   customerVaName: string;
   amountReceived: number;
   paymentTime: string;
-  reference: string;
   paymentStatus: number;
   paymentCode: string;
   settlementStatus: number;
@@ -90,8 +90,8 @@ class DuitkuService {
   private returnUrl: string;
 
   constructor() {
-    this.merchantCode = process.env.DUITKU_MERCHANT_CODE;
-    this.apiKey = process.env.DUITKU_API_KEY;
+    this.merchantCode = process.env.DUITKU_MERCHANT_CODE || '';
+    this.apiKey = process.env.DUITKU_API_KEY || '';
     this.callbackUrl =
       process.env.DUITKU_CALLBACK_URL ||
       `${
@@ -437,16 +437,23 @@ class DuitkuService {
     return computedSignature === signature;
   }
 
-  parsePaymentStatus(statusCode: string): string {
-    switch (statusCode) {
+  parsePaymentStatus(statusCode: string): TransactionStatus {
+    switch (statusCode.toUpperCase()) {
       case '00':
-        return 'SUCCESS';
+      case 'SUCCESS':
+        return 'COMPLETED';
       case '01':
+      case 'FAILED':
         return 'FAILED';
       case '02':
+      case 'PENDING':
         return 'PENDING';
+      case 'CANCELLED':
+        return 'CANCELLED';
+      case 'REFUNDED':
+        return 'REFUNDED';
       default:
-        return 'UNKNOWN';
+        return 'PENDING';
     }
   }
 }

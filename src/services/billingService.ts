@@ -1,4 +1,4 @@
-import { PrismaClient, Package, Transaction, TransactionStatus, BillingPeriod } from '@prisma/client'
+import { PrismaClient, Package, Transaction, TransactionStatus, BillingPeriod, TransactionType } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -73,7 +73,7 @@ export const BillingService = {
     paymentMethod?: string
     paymentGateway?: string
     externalId?: string
-    type?: string
+    type?: TransactionType
     period?: BillingPeriod
     metadata?: any
   }): Promise<Transaction> {

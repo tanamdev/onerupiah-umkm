@@ -1,5 +1,5 @@
-import { ActivityType } from '@prisma/client'
-import { PrismaClient } from '@prisma/client'
+import { ActivityType, PrismaClient } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -10,12 +10,12 @@ export interface ActivityLog {
   activityType: ActivityType;
   action: string;
   description: string;
-  metadata?: any;
-  ipAddress?: string;
-  userAgent?: string;
+  metadata?: any | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
   success: boolean;
-  errorMessage?: string;
-  duration?: number;
+  errorMessage?: string | null;
+  duration?: number | null;
   timestamp: Date;
 }
 
@@ -67,6 +67,13 @@ export const IMAGE_MODES = {
   POSTER: 'poster',
   PRODUCT: 'product',
 } as const;
+
+const extractMetadata = (metadata: Prisma.JsonValue | null): Record<string, unknown> | null => {
+  if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+    return metadata as Record<string, unknown>;
+  }
+  return null;
+};
 
 // Generate unique session ID
 export const generateSessionId = (): string => {
@@ -213,27 +220,33 @@ export const ActivityDBService = {
 
       // Calculate most used types
       const contentTypeStats = contentLogs.reduce((acc, log) => {
-        const contentType = log.metadata?.contentType || 'unknown';
+        const metadata = extractMetadata(log.metadata);
+        const contentType = typeof metadata?.contentType === 'string' ? metadata.contentType : 'unknown';
         acc[contentType] = (acc[contentType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
       const imageModeStats = imageLogs.reduce((acc, log) => {
-        const imageMode = log.metadata?.imageMode || 'unknown';
+        const metadata = extractMetadata(log.metadata);
+        const imageMode = typeof metadata?.imageMode === 'string' ? metadata.imageMode : 'unknown';
         acc[imageMode] = (acc[imageMode] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
       const platformStats = contentLogs.reduce((acc, log) => {
-        const platforms = log.metadata?.platform || [];
-        platforms.forEach((platform: string) => {
+        const metadata = extractMetadata(log.metadata);
+        const platforms = Array.isArray(metadata?.platform)
+          ? (metadata?.platform as unknown[]).filter((platform): platform is string => typeof platform === 'string')
+          : [];
+        platforms.forEach((platform) => {
           acc[platform] = (acc[platform] || 0) + 1;
         });
         return acc;
       }, {} as Record<string, number>);
 
       const imageSizeStats = imageLogs.reduce((acc, log) => {
-        const imageSize = log.metadata?.imageSize || 'unknown';
+        const metadata = extractMetadata(log.metadata);
+        const imageSize = typeof metadata?.imageSize === 'string' ? metadata.imageSize : 'unknown';
         acc[imageSize] = (acc[imageSize] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
@@ -295,13 +308,18 @@ export const ActivityDBService = {
         const contentLogs = dayLogs.filter(log => log.activityType === 'CONTENT_GENERATION');
         const imageLogs = dayLogs.filter(log => log.activityType === 'IMAGE_GENERATION');
 
-        const totalTokensUsed = contentLogs.reduce((sum, log) =>
-          sum + (log.metadata?.tokensUsed || 0), 0
-        );
+        const totalTokensUsed = contentLogs.reduce((sum, log) => {
+          const metadata = extractMetadata(log.metadata);
+          const tokensUsed = typeof metadata?.tokensUsed === 'number' ? metadata.tokensUsed : 0;
+          return sum + tokensUsed;
+        }, 0);
 
         const generationTimes = contentLogs
           .concat(imageLogs)
-          .map(log => log.metadata?.generationTime || 0)
+          .map(log => {
+            const metadata = extractMetadata(log.metadata);
+            return typeof metadata?.generationTime === 'number' ? metadata.generationTime : 0;
+          })
           .filter(time => time > 0);
 
         const averageGenerationTime = generationTimes.length > 0

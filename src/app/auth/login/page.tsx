@@ -1,15 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AuthLayout } from '@/components/layout/auth-layout'
 
-export default function LoginPage() {
-  const router = useRouter()
+const layoutCopy = {
+  title: 'Masuk ke Akun Anda',
+  description: 'Masuk ke akun Asisten UMKM Anda untuk mulai menggunakan fitur AI Assistant'
+}
+
+function LoginContent() {
   const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     email: '',
@@ -81,10 +85,7 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthLayout
-      title="Masuk ke Akun Anda"
-      description="Masuk ke akun Asisten UMKM Anda untuk mulai menggunakan fitur AI Assistant"
-    >
+    <AuthLayout title={layoutCopy.title} description={layoutCopy.description}>
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -157,7 +158,21 @@ export default function LoginPage() {
           </span>
         </div>
 
-        </form>
+      </form>
     </AuthLayout>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthLayout title={layoutCopy.title} description={layoutCopy.description}>
+          <div className="text-center text-sm text-gray-500 py-8">Memuat formulir login...</div>
+        </AuthLayout>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   )
 }

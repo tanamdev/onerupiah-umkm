@@ -15,6 +15,8 @@ export interface GenerationConfig {
   extraInstructions?: string;
   imageSize?: ImageSize;
   foodName?: string;
+  productStyle?: string;
+  productType?: string;
   // Poster-specific fields
   posterStyle?: string;
   layoutTemplate?: string;

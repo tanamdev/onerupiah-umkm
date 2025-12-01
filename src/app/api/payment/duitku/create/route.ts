@@ -81,7 +81,11 @@ export async function POST(request: NextRequest) {
           merchantOrderId
         )
         .catch((duitkuError) => {
-          throw new Error(`Duitku API Error: ${duitkuError.message}`);
+          const errorMessage =
+            duitkuError instanceof Error
+              ? duitkuError.message
+              : String(duitkuError);
+          throw new Error(`Duitku API Error: ${errorMessage}`);
         });
 
       // Update transaction with external ID
@@ -112,7 +116,9 @@ export async function POST(request: NextRequest) {
         message: 'Payment invoice created successfully',
       });
     } catch (duitkuError) {
-      console.error('❌ Duitku Payment Error:', duitkuError);
+      console.error('[!] Duitku Payment Error:', duitkuError);
+      const errorMessage =
+        duitkuError instanceof Error ? duitkuError.message : String(duitkuError);
 
       // Update transaction status to FAILED
       try {
@@ -130,37 +136,40 @@ export async function POST(request: NextRequest) {
             billingPeriod,
             userEmail,
             userName,
-            error: duitkuError.message,
+            error: errorMessage,
           },
         });
 
         await BillingService.updateTransactionStatus(
           failedTransaction.id,
           'FAILED',
-          duitkuError.message
+          errorMessage
         );
       } catch (dbError) {
-        console.error('❌ Failed to update transaction status:', dbError);
+        console.error('[!] Failed to update transaction status:', dbError);
       }
 
       return NextResponse.json(
         {
           success: false,
           error: 'Failed to create payment invoice',
-          details: duitkuError.message,
+          details: errorMessage,
         },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('❌ Payment Processing Error:', error);
+    console.error('[!] Payment Processing Error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
     return NextResponse.json(
       {
         success: false,
         error: 'Internal server error',
-        details: error.message,
+        details: errorMessage,
       },
       { status: 500 }
     );
   }
 }
+

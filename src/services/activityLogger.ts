@@ -1,4 +1,4 @@
-import { ActivityType, ACTIVITY_TYPES, CONTENT_TYPES, IMAGE_MODES, formatDuration } from './activityService';
+import type { ActivityType } from '@prisma/client';
 import { useUser } from '@/contexts/UserContext';
 
 class ActivityLogger {
@@ -44,7 +44,7 @@ class ActivityLogger {
   // Set user info (dipanggil dari context atau auth state)
   public setUserInfo(userId: string, userEmail?: string): void {
     this.userId = userId;
-    this.userEmail = userEmail;
+    this.userEmail = userEmail ?? null;
   }
 
   // Enable/disable logging
