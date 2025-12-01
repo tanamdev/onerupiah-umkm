@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { Prisma } from '@prisma/client'
 import { duitkuService } from '@/services/duitkuService'
 import { BillingService } from '@/services/billingService'
 
@@ -169,7 +168,7 @@ type TransactionMetadata = {
   [key: string]: unknown
 }
 
-function parseTransactionMetadata(metadata: Prisma.JsonValue | null | undefined): TransactionMetadata {
+function parseTransactionMetadata(metadata: unknown): TransactionMetadata {
   if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
     return metadata as TransactionMetadata
   }

@@ -1,5 +1,4 @@
 import { ActivityType, PrismaClient } from '@prisma/client'
-import type { Prisma } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -68,7 +67,7 @@ export const IMAGE_MODES = {
   PRODUCT: 'product',
 } as const;
 
-const extractMetadata = (metadata: Prisma.JsonValue | null): Record<string, unknown> | null => {
+const extractMetadata = (metadata: unknown): Record<string, unknown> | null => {
   if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
     return metadata as Record<string, unknown>;
   }
