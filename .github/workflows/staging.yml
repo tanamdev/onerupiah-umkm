@@ -13,7 +13,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    environment: production
+    environment: staging
 
     permissions:
       contents: read
@@ -48,7 +48,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/tanamdev/${{ env.NAME }}:${{ env.VERSION }}
-            ghcr.io/tanamdev/${{ env.NAME }}:latest
+            ghcr.io/tanamdev/${{ env.NAME }}:staging
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
