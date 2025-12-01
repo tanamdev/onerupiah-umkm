@@ -63,6 +63,7 @@ model User {
   aiAssistants AiAssistant[]
   userSessions UserSession[]
   activityLogs ActivityLog[]
+  transactions Transaction[]
 
   @@map("users")
 }
@@ -78,6 +79,7 @@ enum UserRole {
 model Subscription {
   id           String           @id @default(cuid())
   userId       String
+  packageId    String?
   plan         SubscriptionPlan
   status       SubscriptionStatus @default(ACTIVE)
   startDate    DateTime
@@ -89,7 +91,8 @@ model Subscription {
   updatedAt    DateTime         @updatedAt
 
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package Package? @relation(fields: [packageId], references: [id])
 
   @@map("subscriptions")
 }
@@ -208,6 +211,78 @@ enum AssistantType {
   CONTENT_HELP
   MARKETING_ADVICE
   BUSINESS_TIPS
+}
+
+// Package model for subscription plans
+model Package {
+  id          String       @id @default(cuid())
+  name        String
+  description String
+  price       Int          // Price in cents
+  yearlyPrice Int?         // Yearly price in cents (optional)
+  currency    String       @default("USD")
+  features    Json         // Features list as JSON
+  isActive    Boolean      @default(true)
+  maxContentGenerations Int?
+  maxImageGenerations   Int?
+  duration    Int          @default(30) // Duration in days
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  transactions Transaction[]
+  subscriptions Subscription[]
+
+  @@map("packages")
+}
+
+// Transaction model for payment tracking
+model Transaction {
+  id                String            @id @default(cuid())
+  userId            String
+  packageId         String
+  amount            Int               // Amount in cents
+  currency          String            @default("USD")
+  status            TransactionStatus @default(PENDING)
+  paymentMethod     String?
+  paymentGateway    String?           // e.g., "stripe", "midtrans", etc.
+  externalId        String?           // External transaction ID from payment gateway
+  type              TransactionType   @default(SUBSCRIPTION)
+  period            BillingPeriod     @default(MONTHLY)
+  metadata          Json?             // Additional transaction metadata
+  failureReason     String?           // Reason for payment failure
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package Package @relation(fields: [packageId], references: [id])
+
+  @@map("transactions")
+}
+
+// Enum for transaction status
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+// Enum for transaction types
+enum TransactionType {
+  SUBSCRIPTION
+  RENEWAL
+  UPGRADE
+  DOWNGRADE
+  ONE_TIME
+}
+
+// Enum for billing periods
+enum BillingPeriod {
+  MONTHLY
+  YEARLY
 }
 
 // Activity log model for comprehensive user activity tracking
