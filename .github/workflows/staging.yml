@@ -3,12 +3,12 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main
+      - staging
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+# env:
+#   REGISTRY: ghcr.io
+#   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
