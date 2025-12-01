@@ -9,6 +9,7 @@ export interface PackageWithStats extends Package {
 
 export interface TransactionWithPackage extends Transaction {
   package: Package
+  externalId: string | null
 }
 
 export const BillingService = {
