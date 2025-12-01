@@ -1,15 +1,8 @@
-import { GoogleGenAI, Modality } from '@google/genai';
 import type { ContentGenerationConfig, GeneratedContent } from '@/types/content';
 import { CONTENT_TEMPLATES, PLATFORMS, TONES, TARGET_AUDIENCES } from '@/constants/contentTemplates';
-import { getAIModelForAPI, getAITemperatureForAPI, getAIMaxTokensForAPI, getAIApiKey } from '@/lib/ai-settings';
 import { activityLogger } from './activityLogger';
 
-const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-if (!API_KEY) {
-  console.warn('NEXT_PUBLIC_GEMINI_API_KEY not found in environment variables');
-}
-
-const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+const CONTENT_API_ENDPOINT = '/api/ai/content';
 
 // Build prompt based on content type and configuration
 const buildContentPrompt = (config: ContentGenerationConfig): string => {
@@ -56,59 +49,34 @@ export const generateContent = async (
   config: ContentGenerationConfig
 ): Promise<GeneratedContent> => {
   const operation = async (): Promise<GeneratedContent> => {
-    if (!ai) {
-      // Fallback to mock generation
-      return generateMockContent(config);
-    }
-
-    // Get user's AI settings
-    const [userModel, userTemperature, userMaxTokens] = await Promise.all([
-      getAIModelForAPI('gemini-3-pro'),
-      getAITemperatureForAPI(0.7),
-      getAIMaxTokensForAPI(2048)
-    ]);
-
-    const prompt = buildContentPrompt(config);
-    console.log('Generating content with settings:', {
-      contentType: config.contentType,
-      tone: config.tone,
-      platform: config.platforms,
-      model: userModel,
-      temperature: userTemperature,
-      maxTokens: userMaxTokens
-    });
-
-    const response = await ai.models.generateContent({
-      model: userModel,
-      contents: prompt,
-      config: {
-        responseModalities: [Modality.TEXT],
-        temperature: userTemperature,
-        maxOutputTokens: userMaxTokens,
+    const response = await fetch(CONTENT_API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ config }),
     });
 
-    const generatedText = response.text?.trim();
+    const payload = await response.json().catch(() => null);
 
-    if (!generatedText) {
-      throw new Error('AI generated empty content');
+    if (!response.ok || !payload) {
+      throw new Error(
+        payload?.message || payload?.error || 'Gagal menghubungi layanan AI'
+      );
     }
 
-    // Create generated content object
-    const generatedContent: GeneratedContent = {
-      id: Date.now().toString(),
-      content: generatedText,
-      contentType: config.contentType,
-      title: config.contentType === 'blog' ? extractTitle(generatedText) : undefined,
-      hashtags: config.contentType === 'caption' || config.contentType === 'social' ? extractHashtags(generatedText) : undefined,
-      platform: config.platforms[0],
-      tone: config.tone,
-      wordCount: generatedText.split(/\s+/).length,
-      timestamp: new Date(),
-      config: { ...config },
+    if (!payload.content) {
+      throw new Error('Respons AI tidak lengkap');
+    }
+
+    const generated: GeneratedContent = {
+      ...payload.content,
+      timestamp: payload.content?.timestamp
+        ? new Date(payload.content.timestamp)
+        : new Date(),
     };
 
-    return generatedContent;
+    return generated;
   };
 
   // Use activity logger with performance tracking
@@ -131,8 +99,7 @@ export const generateContent = async (
     );
 
     // Fallback to mock generation
-    const mockResult = generateMockContent(config);
-    return mockResult;
+    return generateMockContent(config);
   }
 };
 

@@ -6,7 +6,7 @@ This project now ships a production-ready Docker image plus a GitHub Actions wor
 
 - `Dockerfile` builds the Next.js app through multi-stage steps (dependency install, build, slim runtime).
 - Variables that start with `NEXT_PUBLIC_` are injected at build time through docker build arguments.
-- Server-only variables (database, JWT, Duitku, etc.) are kept out of the image and must be supplied by Dokploy as runtime environment variables.
+- Server-only variables (database, JWT, `GEMINI_API_KEY`, Duitku, etc.) are kept out of the image and must be supplied by Dokploy as runtime environment variables.
 
 ## 2. GitHub Actions workflow
 
@@ -14,12 +14,11 @@ This project now ships a production-ready Docker image plus a GitHub Actions wor
 2. Add repository **Variables** for values that can be public at build time:
    - `NEXT_PUBLIC_API_URL`
    - `NEXT_PUBLIC_BASE_URL`
-3. Add repository **Secrets** for sensitive client-side values:
-   - `NEXT_PUBLIC_GEMINI_API_KEY`
+3. Add repository **Secrets** for any other build-time values that should be private (not needed for Gemini anymore).
 4. Commit to `main` or trigger the workflow manually (`Actions -> Build and Push Docker Image -> Run workflow`). The workflow:
    - Checks out the code and sets up Docker Buildx.
    - Logs in to GHCR using the built-in `GITHUB_TOKEN`.
-   - Builds the image with the three build args above and pushes tags `latest` and the commit SHA.
+   - Builds the image with the two build args above and pushes tags `latest` and the commit SHA.
 
 Image reference pattern: `ghcr.io/<github-username>/<repository>:<tag>`. You can confirm pushes under the **Packages** tab in GitHub.
 
@@ -37,7 +36,7 @@ Image reference pattern: `ghcr.io/<github-username>/<repository>:<tag>`. You can
 3. **Environment variables**
    - Open the service -> **Environment** tab and either paste values manually or use the **Import .env** button.
    - Copy every key/value from your local `.env` except `NODE_ENV` (Dokploy will set `production` automatically).
-   - Ensure sensitive entries (`DATABASE_URL`, `JWT_SECRET`, `DUITKU_*`, etc.) live in Dokploy as secrets so they do not ship inside the image.
+   - Ensure sensitive entries (`DATABASE_URL`, `JWT_SECRET`, `DUITKU_*`, `GEMINI_API_KEY`, etc.) live in Dokploy as secrets so they do not ship inside the image.
    - Keep the `NEXT_PUBLIC_*` values in sync with whatever you passed to the GitHub Action build args. If they change, rebuild the image.
 
 4. **Deploy**

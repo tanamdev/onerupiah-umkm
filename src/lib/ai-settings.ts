@@ -76,7 +76,3 @@ export const getAIMaxTokensForAPI = async (fallbackTokens: number = 2048): Promi
 }
 
 // Function to get AI API key (for future use when we support custom API keys)
-export const getAIApiKey = async (): Promise<string | null> => {
-  const settings = await getUserAISettings()
-  return settings?.apiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || null
-}

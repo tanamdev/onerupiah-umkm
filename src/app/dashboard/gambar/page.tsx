@@ -57,6 +57,7 @@ export default function GambarPage() {
   const [foodSuggestions, setFoodSuggestions] = useState<string[]>([]);
   const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isGeminiConfigured, setIsGeminiConfigured] = useState<boolean | null>(null);
   const [config, setConfig] = useState<GenerationConfig>({
     platingStyle: PRODUCT_STYLES[0],
     backgroundStyle: BACKGROUND_STYLES[0],
@@ -101,6 +102,34 @@ export default function GambarPage() {
       const saved = JSON.parse(localStorage.getItem('generatedImages') || '[]');
       setSavedImages(saved);
     }
+  }, []);
+
+  // Check whether Gemini API key is configured on the server
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchGeminiStatus = async () => {
+      try {
+        const response = await fetch('/api/ai/status');
+        if (!response.ok) {
+          throw new Error('Failed to fetch AI status');
+        }
+        const data = await response.json();
+        if (isMounted) {
+          setIsGeminiConfigured(Boolean(data?.geminiConfigured));
+        }
+      } catch (error) {
+        console.warn('Failed to load Gemini status:', error);
+        if (isMounted) {
+          setIsGeminiConfigured(false);
+        }
+      }
+    };
+
+    fetchGeminiStatus();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Keyboard navigation
@@ -241,9 +270,9 @@ export default function GambarPage() {
   };
 
   const handleGenerate = async () => {
-    if (!uploadedFile && !process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+    if (!uploadedFile && isGeminiConfigured === false) {
       setError(
-        'Silakan upload gambar terlebih dahulu atau setup API key Gemini'
+        'Silakan upload gambar terlebih dahulu atau hubungi admin untuk mengaktifkan Gemini API'
       );
       return;
     }
@@ -317,9 +346,9 @@ export default function GambarPage() {
   };
 
   const handleMagicEnhance = async () => {
-    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+    if (isGeminiConfigured === false) {
       setError(
-        'Magic enhancement membutuhkan NEXT_PUBLIC_GEMINI_API_KEY di .env.local'
+        'Magic enhancement membutuhkan konfigurasi Gemini API di server'
       );
       return;
     }
@@ -895,11 +924,11 @@ export default function GambarPage() {
             </Button>
 
             {/* API Key Info */}
-            {!process.env.NEXT_PUBLIC_GEMINI_API_KEY && (
+            {isGeminiConfigured === false && (
               <Alert>
                 <AlertDescription>
-                  ℹ️ Untuk hasil terbaik, tambahkan NEXT_PUBLIC_GEMINI_API_KEY
-                  di .env.local
+                  ℹ️ Fitur AI membutuhkan konfigurasi Gemini API di server.
+                  Hubungi administrator untuk menambahkan kunci `GEMINI_API_KEY`.
                 </AlertDescription>
               </Alert>
             )}

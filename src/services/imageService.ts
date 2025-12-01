@@ -1,33 +1,21 @@
-import { GoogleGenAI, Modality } from '@google/genai';
-import type { GenerationConfig, GeneratedImage } from '@/types/image';
-import { getAIImageModelForAPI, getAIModelForAPI, getAITemperatureForAPI, getAIMaxTokensForAPI, getAIApiKey } from '@/lib/ai-settings';
-import { activityLogger } from './activityLogger';
+import type { GenerationConfig, GeneratedImage } from '@/types/image'
+import { activityLogger } from './activityLogger'
 
-// Import modularized services
 import {
   buildRealisticFoodPrompt,
   buildPosterPrompt,
   buildProductPrompt,
-  fileToGenerativePart,
   generateMockImages as generateMockImagesUtil,
-  processAIResponse,
-  extractAIErrorMessage,
   isPosterMode,
   isFoodMode,
   isProductMode,
-} from './image';
+} from './image'
 
-const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-if (!API_KEY) {
-  console.warn('NEXT_PUBLIC_GEMINI_API_KEY not found in environment variables');
-}
-
-const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+const IMAGE_API_ENDPOINT = '/api/ai/image'
 
 // Build prompt based on generation mode
 const buildPrompt = (config: GenerationConfig): string => {
-  // Debug logging
-  console.log('🔍 Mode Detection Debug:', {
+  console.log('dY"? Mode Detection Debug:', {
     hasPosterStyle: !!config.posterStyle,
     hasLayoutTemplate: !!config.layoutTemplate,
     hasColorScheme: !!config.colorScheme,
@@ -38,139 +26,86 @@ const buildPrompt = (config: GenerationConfig): string => {
     hasProductType: !!config.productType,
     isPosterMode: isPosterMode(config),
     isFoodMode: isFoodMode(config),
-    isProductMode: isProductMode(config)
-  });
+    isProductMode: isProductMode(config),
+  })
 
   if (isPosterMode(config)) {
-    console.log('🎨 Using Poster Mode');
-    return buildPosterPrompt(config);
+    console.log('dYZ" Using Poster Mode')
+    return buildPosterPrompt(config)
   } else if (isFoodMode(config)) {
-    console.log('📸 Using Realistic Food Mode');
-    return buildRealisticFoodPrompt(config);
+    console.log('dY", Using Realistic Food Mode')
+    return buildRealisticFoodPrompt(config)
   } else if (isProductMode(config)) {
-    console.log('📦 Using Product Mode');
-    return buildProductPrompt(config);
-  } else {
-    // Default fallback to realistic food
-    console.log('🔄 Using Default Realistic Food Mode');
-    return buildRealisticFoodPrompt(config);
+    console.log('dY"� Using Product Mode')
+    return buildProductPrompt(config)
   }
-};
 
-export const generateProductPhotography = async (
-  imageFile: File,
-  config: GenerationConfig,
-  isPoster: boolean = false
-): Promise<GeneratedImage[]> => {
-  const operation = async (): Promise<GeneratedImage[]> => {
-    if (!ai) {
-      throw new Error(
-        'API Gemini tidak tersedia. Silakan setup API key terlebih dahulu.'
-      );
-    }
+  console.log('dY", Using Default Realistic Food Mode')
+  return buildRealisticFoodPrompt(config)
+}
 
-    const imagePart = await fileToGenerativePart(imageFile);
-    const textPrompt = buildPrompt(config);
+const buildFallbackInstructions = (
+  currentInstructions: string,
+  foodName?: string,
+  platingStyle?: string,
+  imageSize?: any
+): string => {
+  const baseInstructions = currentInstructions.trim()
+  const professionalTips = `
+dY'� **Tips Profesional:**
+- Fokus pada detail tekstur dan warna
+- Gunakan pencahayaan yang dramatis
+- Highlight elemen utama produk
+- Pertahankan estetika yang konsisten`
 
-    const generateSingleImage = async (): Promise<string> => {
-      // Get user's AI settings
-      const [userModel, userTemperature] = await Promise.all([
-        getAIImageModelForAPI('gemini-3-pro'),
-        getAITemperatureForAPI(0.4)
-      ]);
+  const contextInfo = [
+    foodName ? `dY"? Konteks: ${foodName}` : '',
+    platingStyle ? `dYZ" Style: ${platingStyle}` : '',
+    imageSize ? `dY"? Format: ${imageSize.name} (${imageSize.dimensions})` : '',
+  ]
+    .filter(Boolean)
+    .join(' �?� ')
 
-      if (!ai) {
-        // Fallback to mock if no AI instance
-        const mockImages = generateMockImagesUtil(config, isPoster, 1);
-        return mockImages[0].imageUrl;
-      }
+  const enhancedInstructions = contextInfo
+    ? `${baseInstructions}\n\n${professionalTips}\n\n${contextInfo}`
+    : `${baseInstructions}\n\n${professionalTips}`
 
-      const response = await ai.models.generateContent({
-        model: userModel,
-        contents: {
-          parts: [imagePart, { text: textPrompt }],
-        },
-        config: {
-          responseModalities: [Modality.IMAGE, Modality.TEXT],
-          temperature: userTemperature,
-        },
-      });
+  return enhancedInstructions.trim()
+}
 
-      try {
-        return processAIResponse(response);
-      } catch (processError) {
-        const textResponse = response.text?.trim();
-        console.warn('API did not return a valid image. Text response:', textResponse);
+const postImageApi = async (formData: FormData) => {
+  const response = await fetch(IMAGE_API_ENDPOINT, {
+    method: 'POST',
+    body: formData,
+  })
 
-        throw new Error(extractAIErrorMessage(textResponse));
-      }
-    };
-
-    // Generate 2 images in parallel
-    const imagePromises = [generateSingleImage(), generateSingleImage()];
-    const imageUrls = await Promise.all(imagePromises);
-
-    return imageUrls.map((url) => ({
-      imageUrl: url,
-      prompt: textPrompt,
-      timestamp: new Date(),
-    }));
-  };
-
-  // Determine image mode for logging
-  const imageMode = isPoster ? 'poster' : (isFoodMode(config) ? 'realistic' : 'product');
-  const enhancedConfig = {
-    ...config,
-    imageMode,
-  };
-
-  try {
-    const result = await activityLogger.withPerformanceTracking('image', operation, enhancedConfig);
-
-    // Log successful generation
-    await activityLogger.logImageGeneration(
-      imageMode,
-      config,
-      true,
-      undefined,
-      undefined,
-      result.length
-    );
-
-    return result;
-  } catch (error) {
-    console.error('Error generating images:', error);
-
-    // Log failed generation
-    await activityLogger.logImageGeneration(
-      imageMode,
-      config,
-      false,
-      error instanceof Error ? error.message : 'Unknown error'
-    );
-
-    throw error;
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}))
+    const message =
+      errorBody?.message || errorBody?.error || 'Permintaan AI gagal diproses'
+    throw new Error(message)
   }
-};
+
+  return response.json()
+}
 
 // Fallback function untuk demo tanpa API
 export const generateMockImages = async (
   config: GenerationConfig,
   isPoster: boolean = false
 ): Promise<GeneratedImage[]> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000))
 
-  const prompt = buildPrompt(config);
-  const mockImagesResult = generateMockImagesUtil(config, isPoster, 2);
+  const prompt = buildPrompt(config)
+  const mockImagesResult = generateMockImagesUtil(config, isPoster, 2)
 
-  return mockImagesResult.map((mock, index) => ({
+  return mockImagesResult.map((mock) => ({
     imageUrl: mock.imageUrl,
-    prompt: prompt,
+    prompt,
     timestamp: new Date(),
     imageSize: config.imageSize,
-  }));
-};
+  }))
+}
 
 // Fungsi untuk memperbaiki instruksi tambahan menggunakan Gemini API
 export const enhanceInstructions = async (
@@ -179,80 +114,30 @@ export const enhanceInstructions = async (
   platingStyle?: string,
   imageSize?: any
 ): Promise<string> => {
-  if (!ai) {
-    // Fallback ke enhancement tanpa API - hanya untuk instruksi tambahan
-    const baseInstructions = currentInstructions.trim();
-    const professionalTips = `
-💡 **Tips Profesional:**
-- Fokus pada detail tekstur dan warna
-- Gunakan pencahayaan yang dramatis
-- Highlight elemen utama produk
-- Pertahankan estetika yang konsisten`;
-
-    const contextInfo = [
-      foodName ? `📝 Konteks: ${foodName}` : '',
-      platingStyle ? `🎨 Style: ${platingStyle}` : '',
-      imageSize ? `📐 Format: ${imageSize.name} (${imageSize.dimensions})` : '',
-    ]
-      .filter(Boolean)
-      .join(' • ');
-
-    const enhancedInstructions = contextInfo
-      ? `${baseInstructions}\n\n${professionalTips}\n\n${contextInfo}`
-      : `${baseInstructions}\n\n${professionalTips}`;
-
-    return enhancedInstructions.trim();
+  if (!currentInstructions?.trim()) {
+    return currentInstructions
   }
+
+  const formData = new FormData()
+  formData.append('action', 'enhance')
+  formData.append('instructions', currentInstructions)
+  if (foodName) formData.append('foodName', foodName)
+  if (platingStyle) formData.append('platingStyle', platingStyle)
+  if (imageSize) formData.append('imageSize', JSON.stringify(imageSize))
 
   try {
-    // Get user's AI settings for text processing
-    const [userModel, userTemperature] = await Promise.all([
-      getAIModelForAPI('gemini-3-pro'),
-      getAITemperatureForAPI(0.3)
-    ]);
-
-    const enhancePrompt = `Tingkatkan instruksi fotografi tambahan berikut menjadi lebih spesifik dan profesional:
-
-Instruksi User:
-"${currentInstructions}"
-
-${foodName ? `📸 Target Produk: ${foodName}` : ''}
-${platingStyle ? `🎨 Gaya: ${platingStyle}` : ''}
-${
-  imageSize
-    ? `📐 Format Output: ${imageSize.name} (${imageSize.dimensions})`
-    : ''
-}
-
-Tugas:
-- Jangan ubah instruksi utama template (sistem sudah handle bagian utama)
-- Fokus hanya memperbaiki & menambah detail pada instruksi tambahan user
-- Tambahkan teknik fotografi spesifik jika relevan
-- Berikan tips visual yang actionable
-- Pertahankan intent user asli
-- Max 2-3 kalimat tambahan
-
-Contoh output format:
-"${currentInstructions}" + [tambahan profesional singkat]
-
-Hasilkan instruksi tambahan yang lebih baik dan detail.`;
-
-    const response = await ai.models.generateContent({
-      model: userModel,
-      contents: enhancePrompt,
-      config: {
-        responseModalities: [Modality.TEXT],
-        temperature: userTemperature,
-      },
-    });
-
-    const enhanced = response.text?.trim();
-    return enhanced || currentInstructions;
+    const data = await postImageApi(formData)
+    return data.enhancedInstructions || currentInstructions
   } catch (error) {
-    console.warn('Failed to enhance instructions:', error);
-    return currentInstructions; // Fallback ke original
+    console.warn('Failed to enhance instructions via API:', error)
+    return buildFallbackInstructions(
+      currentInstructions,
+      foodName,
+      platingStyle,
+      imageSize
+    )
   }
-};
+}
 
 // Main function dengan fallback ke mock
 export const generateImage = async (
@@ -260,29 +145,66 @@ export const generateImage = async (
   config: GenerationConfig,
   isPoster: boolean = false
 ): Promise<GeneratedImage[]> => {
-  try {
-    if (!imageFile || !ai) {
-      // Fallback ke mock generation jika tidak ada file atau API key
-      console.log('Using mock generation (no file or API key)');
-      return await generateMockImages(config, isPoster);
-    }
-
-    const images = await generateProductPhotography(
-      imageFile,
-      config,
-      isPoster
-    );
-
-    // Add image size info to generated images
-    return images.map((image) => ({
-      ...image,
-      imageSize: config.imageSize,
-    }));
-  } catch (error) {
-    console.warn(
-      'Failed to generate with Gemini API, falling back to mock:',
-      error
-    );
-    return await generateMockImages(config, isPoster);
+  if (!imageFile) {
+    console.log('Using mock generation (no uploaded file)')
+    return generateMockImages(config, isPoster)
   }
-};
+
+  const imageMode = isPoster
+    ? 'poster'
+    : isFoodMode(config)
+    ? 'realistic'
+    : 'product'
+
+  const enhancedConfig = {
+    ...config,
+    imageMode,
+  }
+
+  const operation = async (): Promise<GeneratedImage[]> => {
+    const formData = new FormData()
+    formData.append('action', 'generate')
+    formData.append('config', JSON.stringify(config))
+    formData.append('isPoster', String(isPoster))
+    formData.append('imageSize', JSON.stringify(config.imageSize || null))
+    formData.append('image', imageFile)
+
+    const data = await postImageApi(formData)
+    return (data.images || []).map((image: any) => ({
+      imageUrl: image.imageUrl,
+      prompt: image.prompt,
+      timestamp: image.timestamp ? new Date(image.timestamp) : new Date(),
+      imageSize: config.imageSize,
+    }))
+  }
+
+  try {
+    const result = await activityLogger.withPerformanceTracking(
+      'image',
+      operation,
+      enhancedConfig
+    )
+
+    await activityLogger.logImageGeneration(
+      imageMode,
+      config,
+      true,
+      undefined,
+      undefined,
+      result.length
+    )
+
+    return result
+  } catch (error) {
+    console.error('Error generating images:', error)
+
+    await activityLogger.logImageGeneration(
+      imageMode,
+      config,
+      false,
+      error instanceof Error ? error.message : 'Unknown error'
+    )
+
+    return generateMockImages(config, isPoster)
+  }
+}
