@@ -148,7 +148,15 @@ export default function BillingPage() {
 
       const amount = period === 'monthly' ? packageData.price : packageData.yearlyPrice || packageData.price
 
-      const response = await fetch('/api/transactions', {
+      console.log('🚀 Starting Payment Process:', {
+        userId: user.id,
+        packageId,
+        packageName: packageData.name,
+        amount,
+        period: period.toUpperCase()
+      })
+
+      const response = await fetch('/api/payment/duitku/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -156,23 +164,33 @@ export default function BillingPage() {
         body: JSON.stringify({
           userId: user.id,
           packageId,
-          amount,
-          type: 'RENEWAL',
-          period: period.toUpperCase()
+          billingPeriod: period.toUpperCase(),
+          packageName: packageData.name,
+          packagePrice: amount,
+          userEmail: user.email,
+          userName: user.name,
+          userPhone: user.phone
         })
       })
 
       if (response.ok) {
         const data = await response.json()
-        console.log('Transaction created:', data.data)
-        // In a real app, you would redirect to payment gateway here
-        alert('Transaksi berhasil dibuat! Redirect ke payment gateway...')
+        console.log('✅ Payment Invoice Created:', data.data)
+
+        // Redirect to Duitku payment page
+        if (data.data.paymentUrl) {
+          window.location.href = data.data.paymentUrl
+        } else {
+          alert('URL pembayaran tidak tersedia. Silakan coba lagi.')
+        }
       } else {
-        alert('Gagal membuat transaksi. Silakan coba lagi.')
+        const errorData = await response.json()
+        console.error('❌ Payment Creation Failed:', errorData)
+        alert(`Gagal membuat pembayaran: ${errorData.error || 'Silakan coba lagi.'}`)
       }
     } catch (error) {
-      console.error('Error creating renewal transaction:', error)
-      alert('Terjadi kesalahan. Silakan coba lagi.')
+      console.error('❌ Payment Processing Error:', error)
+      alert('Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.')
     }
   }
 
