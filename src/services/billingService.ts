@@ -1,4 +1,4 @@
-import { PrismaClient, Package, Transaction, TransactionStatus, BillingPeriod, TransactionType } from '@prisma/client'
+import { PrismaClient, Package, Transaction, TransactionStatus, BillingPeriod, TransactionType, Prisma } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -7,10 +7,9 @@ export interface PackageWithStats extends Package {
   totalTransactions?: number
 }
 
-export interface TransactionWithPackage extends Transaction {
-  package: Package
-  externalId: string | null
-}
+export type TransactionWithPackage = Prisma.TransactionGetPayload<{
+  include: { package: true }
+}>
 
 export const BillingService = {
   // Package Management
