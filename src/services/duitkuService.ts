@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import type { TransactionStatus } from '@prisma/client';
+import moment from 'moment-timezone';
 
 interface DuitkuCreateInvoiceRequest {
   paymentAmount: number;
@@ -131,8 +132,8 @@ class DuitkuService {
   }
 
   private getCurrentTimestamp(): number {
-    const timestamp = Math.round(Date.now());
-    console.log('Timestamp:', timestamp);
+    const timestamp = moment().tz('Asia/Jakarta').valueOf();
+
     return timestamp;
   }
 

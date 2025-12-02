@@ -1,6 +1,6 @@
 {
   "name": "boilerplate-nextjs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "jose": "^6.1.2",
     "lucide-react": "^0.555.0",
+    "moment-timezone": "^0.6.0",
     "next": "16.0.5",
     "prisma": "^5.22.0",
     "react": "19.2.0",
