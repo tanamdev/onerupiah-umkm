@@ -127,7 +127,7 @@ class DuitkuService {
     timestamp: number,
     apiKey: string
   ): string {
-    const data = `${merchantCode}-${timestamp}-${apiKey}`;
+    const data = `${merchantCode}${timestamp}${apiKey}`;
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
