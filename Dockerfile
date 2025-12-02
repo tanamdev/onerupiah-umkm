@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:20-bookworm-slim AS base
+FROM node:20-bullseye-slim AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 FROM base AS deps
 ENV NODE_ENV=development
@@ -23,8 +24,9 @@ RUN npm run build
 FROM deps AS prod-deps
 RUN npm prune --omit=dev
 
-FROM node:20-bookworm-slim AS runner
+FROM node:20-bullseye-slim AS runner
 WORKDIR /app
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_BASE_URL
 ENV NODE_ENV=production \
