@@ -280,7 +280,7 @@ class DuitkuService {
       try {
         console.log('📄 Parsing Duitku API Response as JSON...');
         console.log('Response object:', response);
-        responseText = await response.json();
+        responseText = await response.text();
         console.log('📄 Duitku API Raw Response Text:', responseText);
 
         if (!responseText || responseText.trim() === '') {
