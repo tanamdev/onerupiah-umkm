@@ -96,6 +96,71 @@ export const BillingService = {
     })
   },
 
+  // Transactional Methods for Atomic Operations
+  async createTransactionWithPayment(
+    transactionData: {
+      userId: string
+      packageId: string
+      amount: number
+      currency?: string
+      paymentMethod?: string
+      paymentGateway?: string
+      type?: TransactionType
+      period?: BillingPeriod
+      metadata?: any
+    },
+    paymentCallback: () => Promise<{ reference: string; paymentUrl: string }>
+  ): Promise<{ transaction: Transaction; paymentResult: { reference: string; paymentUrl: string } }> {
+    // create record up-front outside of long-running transaction
+    const transaction = await prisma.transaction.create({
+      data: {
+        userId: transactionData.userId,
+        packageId: transactionData.packageId,
+        amount: transactionData.amount,
+        currency: transactionData.currency || 'IDR',
+        paymentMethod: transactionData.paymentMethod,
+        paymentGateway: transactionData.paymentGateway,
+        type: transactionData.type || 'SUBSCRIPTION',
+        period: transactionData.period || 'MONTHLY',
+        metadata: transactionData.metadata,
+        status: 'PENDING'
+      },
+      include: {
+        package: true
+      }
+    })
+
+    try {
+      const paymentResult = await paymentCallback()
+
+      const updatedTransaction = await prisma.transaction.update({
+        where: { id: transaction.id },
+        data: {
+          externalId: paymentResult.reference,
+          status: 'PENDING'
+        },
+        include: {
+          package: true
+        }
+      })
+
+      return {
+        transaction: updatedTransaction,
+        paymentResult
+      }
+    } catch (paymentError) {
+      await prisma.transaction.update({
+        where: { id: transaction.id },
+        data: {
+          status: 'FAILED',
+          failureReason: paymentError instanceof Error ? paymentError.message : String(paymentError)
+        }
+      })
+
+      throw paymentError
+    }
+  },
+
   async updateTransactionStatus(
     id: string,
     status: TransactionStatus,

@@ -49,80 +49,9 @@ export async function POST(request: NextRequest) {
     });
 
     try {
-      // Create transaction in database first
-      const transaction = await BillingService.createTransaction({
-        userId,
-        packageId,
-        amount: packagePrice,
-        currency: 'IDR',
-        paymentMethod: 'DUITKU',
-        paymentGateway: 'DUITKU',
-        type: 'SUBSCRIPTION',
-        period: billingPeriod,
-        metadata: {
-          merchantOrderId,
-          packageName,
-          billingPeriod,
-          userEmail,
-          userName,
-        },
-      });
-
-      // Create Duitku invoice
-      const duitkuResponse = await duitkuService
-        .createInvoice(
-          userId,
-          userEmail,
-          userName,
-          userPhone || '',
-          packageName,
-          packagePrice,
-          billingPeriod,
-          merchantOrderId
-        )
-        .catch((duitkuError) => {
-          const errorMessage =
-            duitkuError instanceof Error
-              ? duitkuError.message
-              : String(duitkuError);
-          throw new Error(`Duitku API Error: ${errorMessage}`);
-        });
-
-      // Update transaction with external ID
-      await BillingService.updateTransactionStatus(
-        transaction.id,
-        'PENDING',
-        undefined,
-        duitkuResponse.reference
-      );
-
-      console.log('✅ Payment Invoice Created Successfully:', {
-        transactionId: transaction.id,
-        merchantOrderId,
-        duitkuReference: duitkuResponse.reference,
-        paymentUrl: duitkuResponse.paymentUrl,
-      });
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          transactionId: transaction.id,
-          merchantOrderId,
-          paymentUrl: duitkuResponse.paymentUrl,
-          reference: duitkuResponse.reference,
-          amount: packagePrice,
-          expiryPeriod: 60,
-        },
-        message: 'Payment invoice created successfully',
-      });
-    } catch (duitkuError) {
-      console.error('[!] Duitku Payment Error:', duitkuError);
-      const errorMessage =
-        duitkuError instanceof Error ? duitkuError.message : String(duitkuError);
-
-      // Update transaction status to FAILED
-      try {
-        const failedTransaction = await BillingService.createTransaction({
+      // Use transactional approach - atomic operation between DB and external API
+      const result = await BillingService.createTransactionWithPayment(
+        {
           userId,
           packageId,
           amount: packagePrice,
@@ -132,22 +61,56 @@ export async function POST(request: NextRequest) {
           type: 'SUBSCRIPTION',
           period: billingPeriod,
           metadata: {
+            merchantOrderId,
             packageName,
             billingPeriod,
             userEmail,
             userName,
-            error: errorMessage,
           },
-        });
+        },
+        async () => {
+          // Payment callback - executed within transaction context
+          const duitkuResponse = await duitkuService.createInvoice(
+            userId,
+            userEmail,
+            userName,
+            userPhone || '',
+            packageName,
+            packagePrice,
+            billingPeriod,
+            merchantOrderId
+          );
 
-        await BillingService.updateTransactionStatus(
-          failedTransaction.id,
-          'FAILED',
-          errorMessage
-        );
-      } catch (dbError) {
-        console.error('[!] Failed to update transaction status:', dbError);
-      }
+          return {
+            reference: duitkuResponse.reference,
+            paymentUrl: duitkuResponse.paymentUrl,
+          };
+        }
+      );
+
+      console.log('✅ Payment Invoice Created Successfully:', {
+        transactionId: result.transaction.id,
+        merchantOrderId,
+        duitkuReference: result.paymentResult.reference,
+        paymentUrl: result.paymentResult.paymentUrl,
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          transactionId: result.transaction.id,
+          merchantOrderId,
+          paymentUrl: result.paymentResult.paymentUrl,
+          reference: result.paymentResult.reference,
+          amount: packagePrice,
+          expiryPeriod: 60,
+        },
+        message: 'Payment invoice created successfully',
+      });
+    } catch (duitkuError) {
+      console.error('[!] Duitku Payment Error:', duitkuError);
+      const errorMessage =
+        duitkuError instanceof Error ? duitkuError.message : String(duitkuError);
 
       return NextResponse.json(
         {

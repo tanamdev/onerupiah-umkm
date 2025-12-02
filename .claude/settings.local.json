@@ -5,7 +5,10 @@
       "Bash(npm install:*)",
       "Bash(npx prisma init:*)",
       "Bash(npx prisma generate:*)",
-      "Bash(npx prisma db push:*)"
+      "Bash(npx prisma db push:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

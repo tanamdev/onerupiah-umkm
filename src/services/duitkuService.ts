@@ -438,6 +438,17 @@ class DuitkuService {
     return computedSignature === signature;
   }
 
+  // New callback signature validation according to Duitku documentation
+  // Formula: MD5(merchantcode + amount + merchantOrderId + merchantKey)
+  validateNewCallbackSignature(payload: any, signature: string): boolean {
+    const { merchantCode, amount, merchantOrderId } = payload;
+    const computedSignature = crypto
+      .createHash('md5')
+      .update(`${merchantCode}${amount}${merchantOrderId}${this.apiKey}`)
+      .digest('hex');
+    return computedSignature === signature;
+  }
+
   parsePaymentStatus(statusCode: string): TransactionStatus {
     switch (statusCode.toUpperCase()) {
       case '00':
