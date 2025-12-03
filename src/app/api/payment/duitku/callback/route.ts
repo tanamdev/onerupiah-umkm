@@ -157,6 +157,13 @@ export async function POST(request: NextRequest) {
           transaction.metadata
         );
 
+        console.log('🔍 Parsed Transaction Metadata:', {
+          transactionId: transaction.id,
+          userId: transaction.userId,
+          rawMetadata: transaction.metadata,
+          parsed: { packageId, period, metadata }
+        });
+
         if (packageId && period) {
           console.log('🔄 Processing Subscription for Successful Payment:', {
             userId: transaction.userId,
@@ -165,11 +172,23 @@ export async function POST(request: NextRequest) {
             amount: transaction.amount,
           });
 
-          await subscriptionService.createOrUpdateSubscriptionFromPackage(
-            transaction.userId,
+          try {
+            await subscriptionService.createOrUpdateSubscriptionFromPackage(
+              transaction.userId,
+              packageId,
+              period as 'MONTHLY' | 'YEARLY'
+            );
+            console.log('✅ Subscription processed successfully');
+          } catch (subscriptionError) {
+            console.error('❌ Subscription processing error:', subscriptionError);
+            throw subscriptionError; // Re-throw to see the error
+          }
+        } else {
+          console.error('❌ Missing packageId or period for subscription processing:', {
             packageId,
-            period as 'MONTHLY' | 'YEARLY'
-          );
+            period,
+            metadata: transaction.metadata
+          });
         }
 
         console.log('✅ Payment Completed Successfully:', {
@@ -235,17 +254,22 @@ export async function POST(request: NextRequest) {
 type TransactionMetadata = {
   packageId?: string;
   period?: string;
-  metadata?: {
-    packageName?: string;
-    billingPeriod?: string;
-    [key: string]: unknown;
-  };
+  billingPeriod?: string;
+  packageName?: string;
+  merchantOrderId?: string;
   [key: string]: unknown;
 };
 
 function parseTransactionMetadata(metadata: unknown): TransactionMetadata {
   if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
-    return metadata as TransactionMetadata;
+    const meta = metadata as any;
+    return {
+      packageId: meta.packageId,
+      period: meta.period || meta.billingPeriod,
+      billingPeriod: meta.billingPeriod || meta.period,
+      packageName: meta.packageName,
+      merchantOrderId: meta.merchantOrderId,
+    };
   }
   return {};
 }

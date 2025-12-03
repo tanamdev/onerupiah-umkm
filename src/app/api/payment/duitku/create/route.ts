@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
             billingPeriod,
             userEmail,
             userName,
+            packageId, // Tambahkan packageId ke metadata
           },
         },
         async () => {

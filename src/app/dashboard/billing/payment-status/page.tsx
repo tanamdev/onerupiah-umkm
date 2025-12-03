@@ -15,43 +15,93 @@ interface PaymentStatus {
   merchantOrderId?: string
   paymentStatus?: string
   paymentTime?: string
+  paymentMethod?: string
+  paymentCode?: string
 }
 
 function PaymentStatusContent() {
   const searchParams = useSearchParams()
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const status = searchParams.get('status')
-    const reference = searchParams.get('reference')
-    const amount = searchParams.get('amount')
-    const merchantOrderId = searchParams.get('merchantOrderId')
-    const message = searchParams.get('message')
+    const checkPaymentStatus = async () => {
+      try {
+        const reference = searchParams.get('reference')
+        const merchantOrderId = searchParams.get('merchantOrderId')
 
-    // Simulate checking payment status
-    setTimeout(() => {
-      setPaymentStatus({
-        success: status === 'success',
-        message: message || (status === 'success' ? 'Pembayaran berhasil!' : 'Pembayaran gagal atau dibatalkan.'),
-        reference: reference || undefined,
-        amount: amount ? parseInt(amount) : undefined,
-        merchantOrderId: merchantOrderId || undefined,
-        paymentStatus: status || 'unknown'
-      })
-      setIsLoading(false)
-    }, 1000)
+        // Build API URL with parameters
+        const params = new URLSearchParams()
+        if (reference) params.append('reference', reference)
+        if (merchantOrderId) params.append('merchantOrderId', merchantOrderId)
+
+        console.log('🔍 Checking payment status with params:', params.toString())
+
+        const response = await fetch(`/api/payment/status?${params.toString()}`)
+        const result = await response.json()
+
+        console.log('📊 Payment status response:', result)
+
+        if (response.ok && result.data) {
+          setPaymentStatus({
+            success: result.success,
+            message: result.data.message || 'Status pembayaran tidak diketahui',
+            reference: result.data.reference,
+            amount: result.data.amount,
+            merchantOrderId: result.data.merchantOrderId,
+            paymentStatus: result.data.paymentStatus,
+            paymentTime: result.data.paymentTime,
+            paymentMethod: result.data.paymentMethod,
+            paymentCode: result.data.paymentCode
+          })
+        } else {
+          setError(result.error || 'Gagal memeriksa status pembayaran')
+          setPaymentStatus({
+            success: false,
+            message: result.error || 'Gagal memeriksa status pembayaran',
+            paymentStatus: 'error'
+          })
+        }
+      } catch (err) {
+        console.error('❌ Error checking payment status:', err)
+        setError('Terjadi kesalahan saat memeriksa status pembayaran')
+        setPaymentStatus({
+          success: false,
+          message: 'Terjadi kesalahan saat memeriksa status pembayaran',
+          paymentStatus: 'error'
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkPaymentStatus()
+
+    // Optional: Set up polling for pending payments
+    const interval = setInterval(() => {
+      if (paymentStatus?.paymentStatus === 'PENDING') {
+        console.log('🔄 Refetching payment status...')
+        checkPaymentStatus()
+      }
+    }, 5000) // Check every 5 seconds for pending payments
+
+    return () => clearInterval(interval)
   }, [searchParams])
 
   const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'success':
+    switch (status?.toUpperCase()) {
+      case 'SUCCESS':
+      case 'COMPLETED':
         return 'bg-green-100 text-green-800'
-      case 'failed':
-      case 'cancel':
+      case 'FAILED':
+      case 'CANCELLED':
+      case 'FAILED':
         return 'bg-red-100 text-red-800'
-      case 'pending':
+      case 'PENDING':
         return 'bg-yellow-100 text-yellow-800'
+      case 'ERROR':
+        return 'bg-orange-100 text-orange-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -128,6 +178,29 @@ function PaymentStatusContent() {
                     <Badge className={getStatusColor(paymentStatus.paymentStatus)}>
                       {paymentStatus.paymentStatus.toUpperCase()}
                     </Badge>
+                  </div>
+                )}
+
+                {paymentStatus.paymentMethod && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Metode Pembayaran:</span>
+                    <span className="font-medium">{paymentStatus.paymentMethod}</span>
+                  </div>
+                )}
+
+                {paymentStatus.paymentCode && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Kode Pembayaran:</span>
+                    <span className="font-mono text-sm">{paymentStatus.paymentCode}</span>
+                  </div>
+                )}
+
+                {paymentStatus.paymentTime && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Waktu Pembayaran:</span>
+                    <span className="text-sm">
+                      {new Date(paymentStatus.paymentTime).toLocaleString('id-ID')}
+                    </span>
                   </div>
                 )}
               </div>

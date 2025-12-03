@@ -159,106 +159,146 @@ class SubscriptionServiceImpl implements SubscriptionService {
     packageId: string,
     billingPeriod: 'MONTHLY' | 'YEARLY'
   ): Promise<void> {
-    const currentActiveSubscription = await prisma.subscription.findFirst({
-      where: {
-        userId,
-        status: SubscriptionStatus.ACTIVE,
-      },
-    });
+    console.log('🔧 Starting subscription processing:', { userId, packageId, billingPeriod });
 
-    const packageData = await prisma.package.findUnique({
-      where: { id: packageId },
-    });
+    // Use transaction for atomic operation
+    await prisma.$transaction(async (tx) => {
+      const currentActiveSubscription = await tx.subscription.findFirst({
+        where: {
+          userId,
+          status: SubscriptionStatus.ACTIVE,
+        },
+      });
 
-    if (!packageData) {
-      throw new Error('Package not found');
-    }
+      const packageData = await tx.package.findUnique({
+        where: { id: packageId },
+      });
 
-    const startDate = new Date();
-    const endDate = new Date(startDate);
-
-    // Calculate duration based on billing period
-    if (billingPeriod === 'YEARLY') {
-      endDate.setFullYear(endDate.getFullYear() + 1);
-    } else {
-      endDate.setMonth(endDate.getMonth() + 1);
-    }
-
-    // Determine subscription plan based on package
-    let subscriptionPlan: SubscriptionPlan;
-    if (
-      packageData.name.toLowerCase().includes('premium') ||
-      packageData.price > 0
-    ) {
-      subscriptionPlan =
-        billingPeriod === 'YEARLY'
-          ? SubscriptionPlan.PREMIUM_YEARLY
-          : SubscriptionPlan.PREMIUM_MONTHLY;
-    } else {
-      subscriptionPlan = SubscriptionPlan.FREE;
-    }
-
-    if (currentActiveSubscription) {
-      // RENEWAL: Extend existing subscription
-      const currentEndDate = new Date(currentActiveSubscription.endDate);
-
-      // If current subscription is still valid, extend from current end date
-      // Otherwise, start from today
-      const extensionStartDate =
-        currentEndDate > new Date() ? currentEndDate : startDate;
-      const newEndDate = new Date(extensionStartDate);
-
-      if (billingPeriod === 'YEARLY') {
-        newEndDate.setFullYear(newEndDate.getFullYear() + 1);
-      } else {
-        newEndDate.setMonth(newEndDate.getMonth() + 1);
+      if (!packageData) {
+        console.error('❌ Package not found:', packageId);
+        throw new Error(`Package not found: ${packageId}`);
       }
 
-      await prisma.subscription.update({
-        where: { id: currentActiveSubscription.id },
-        data: {
-          plan: subscriptionPlan,
-          status: SubscriptionStatus.ACTIVE,
-          startDate: extensionStartDate,
-          endDate: newEndDate,
-          monthlyPrice: packageData.price,
-          yearlyPrice: packageData.yearlyPrice,
-          autoRenew: true,
-          packageId: packageId,
-        },
+      console.log('📦 Found package data:', {
+        id: packageData.id,
+        name: packageData.name,
+        price: packageData.price,
+        duration: packageData.duration
       });
 
-      console.log('🔄 Subscription Renewed:', {
-        userId,
-        packageId,
-        oldEndDate: currentEndDate,
-        newEndDate,
-        billingPeriod,
-      });
-    } else {
-      // NEW: Create new subscription
-      await prisma.subscription.create({
-        data: {
+    const startDate = new Date();
+      const endDate = new Date(startDate);
+
+      // Calculate duration based on billing period or package duration
+      if (packageData.duration) {
+        // Use package duration if available
+        endDate.setDate(endDate.getDate() + packageData.duration);
+        console.log('📅 Using package duration:', packageData.duration, 'days');
+      } else {
+        // Fallback to billing period
+        if (billingPeriod === 'YEARLY') {
+          endDate.setFullYear(endDate.getFullYear() + 1);
+        } else {
+          endDate.setMonth(endDate.getMonth() + 1);
+        }
+        console.log('📅 Using billing period:', billingPeriod);
+      }
+
+      // Determine subscription plan based on package
+      let subscriptionPlan: SubscriptionPlan;
+      if (
+        packageData.name.toLowerCase().includes('premium') ||
+        packageData.price > 0
+      ) {
+        subscriptionPlan =
+          billingPeriod === 'YEARLY'
+            ? SubscriptionPlan.PREMIUM_YEARLY
+            : SubscriptionPlan.PREMIUM_MONTHLY;
+      } else {
+        subscriptionPlan = SubscriptionPlan.FREE;
+      }
+
+      if (currentActiveSubscription) {
+        // RENEWAL: Extend existing subscription
+        const currentEndDate = new Date(currentActiveSubscription.endDate);
+        const now = new Date();
+
+        console.log('🔄 Current subscription found:', {
+          subscriptionId: currentActiveSubscription.id,
+          currentEndDate,
+          now,
+          isStillValid: currentEndDate > now
+        });
+
+        // If current subscription is still valid, extend from current end date
+        // Otherwise, start from today
+        const extensionStartDate = currentEndDate > now ? currentEndDate : startDate;
+        const newEndDate = new Date(extensionStartDate);
+
+        if (packageData.duration) {
+          newEndDate.setDate(newEndDate.getDate() + packageData.duration);
+        } else {
+          if (billingPeriod === 'YEARLY') {
+            newEndDate.setFullYear(newEndDate.getFullYear() + 1);
+          } else {
+            newEndDate.setMonth(newEndDate.getMonth() + 1);
+          }
+        }
+
+        await tx.subscription.update({
+          where: { id: currentActiveSubscription.id },
+          data: {
+            plan: subscriptionPlan,
+            status: SubscriptionStatus.ACTIVE,
+            startDate: extensionStartDate,
+            endDate: newEndDate,
+            monthlyPrice: packageData.price,
+            yearlyPrice: packageData.yearlyPrice,
+            autoRenew: true,
+            packageId: packageId,
+          },
+        });
+
+        console.log('🔄 Subscription Renewed:', {
           userId,
-          plan: subscriptionPlan,
-          status: SubscriptionStatus.ACTIVE,
+          subscriptionId: currentActiveSubscription.id,
+          packageId,
+          oldEndDate: currentEndDate,
+          newEndDate,
+          billingPeriod,
+          extensionStartDate,
+        });
+      } else {
+        // NEW: Create new subscription
+        console.log('✨ No active subscription found, creating new one');
+
+        const newSubscription = await tx.subscription.create({
+          data: {
+            userId,
+            plan: subscriptionPlan,
+            status: SubscriptionStatus.ACTIVE,
+            startDate,
+            endDate,
+            monthlyPrice: packageData.price,
+            yearlyPrice: packageData.yearlyPrice,
+            autoRenew: true,
+            packageId: packageId,
+          },
+        });
+
+        console.log('✅ New Subscription Created:', {
+          subscriptionId: newSubscription.id,
+          userId,
+          packageId,
           startDate,
           endDate,
-          monthlyPrice: packageData.price,
-          yearlyPrice: packageData.yearlyPrice,
-          autoRenew: true,
-          packageId: packageId,
-        },
-      });
+          billingPeriod,
+          plan: subscriptionPlan,
+        });
+      }
+    });
 
-      console.log('✅ New Subscription Created:', {
-        userId,
-        packageId,
-        startDate,
-        endDate,
-        billingPeriod,
-      });
-    }
+    console.log('✅ Subscription processing completed successfully');
   }
 
   async cancelSubscription(userId: string): Promise<void> {
