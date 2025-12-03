@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Missing reference or merchantOrderId parameter'
+          error: 'Missing reference or merchantOrderId parameter. Please provide either reference or merchantOrderId from the payment URL.',
+          help: 'URL should contain either ?reference=XXX or ?merchantOrderId=XXX parameter'
         },
         { status: 400 }
       )

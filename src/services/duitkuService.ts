@@ -244,6 +244,9 @@ class DuitkuService {
       merchantCustomerId: userId,
     };
 
+    // Create dynamic return URL with merchantOrderId parameter
+    const dynamicReturnUrl = `${this.returnUrl}?merchantOrderId=${encodeURIComponent(transactionId)}`;
+
     const duitkuPayload = {
       paymentAmount: packagePrice,
       merchantOrderId: transactionId,
@@ -255,10 +258,11 @@ class DuitkuService {
       phoneNumber: userPhone || '081234567890',
       itemDetails,
       callbackUrl: this.callbackUrl,
-      returnUrl: this.returnUrl,
+      returnUrl: dynamicReturnUrl,
       expiryPeriod: 60, // dalam menit
     };
 
+    console.log('🔗 Dynamic Return URL:', dynamicReturnUrl);
     console.log('Duitku payload:', duitkuPayload);
 
     console.log('🚀 Making Duitku API Call...');

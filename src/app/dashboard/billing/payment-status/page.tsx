@@ -56,11 +56,25 @@ function PaymentStatusContent() {
             paymentCode: result.data.paymentCode
           })
         } else {
-          setError(result.error || 'Gagal memeriksa status pembayaran')
+          const errorMessage = result.error || 'Gagal memeriksa status pembayaran'
+          const helpMessage = result.help || ''
+
+          setError(errorMessage)
           setPaymentStatus({
             success: false,
-            message: result.error || 'Gagal memeriksa status pembayaran',
+            message: helpMessage ? `${errorMessage}. ${helpMessage}` : errorMessage,
             paymentStatus: 'error'
+          })
+
+          // Log the URL parameters for debugging
+          console.log('❌ Payment status check failed:', {
+            error: errorMessage,
+            help: helpMessage,
+            urlParams: {
+              reference: searchParams.get('reference'),
+              merchantOrderId: searchParams.get('merchantOrderId'),
+              fullUrl: window?.location?.href
+            }
           })
         }
       } catch (err) {
@@ -80,7 +94,7 @@ function PaymentStatusContent() {
 
     // Optional: Set up polling for pending payments
     const interval = setInterval(() => {
-      if (paymentStatus?.paymentStatus === 'PENDING') {
+      if (paymentStatus?.paymentStatus === 'PENDING' || paymentStatus?.paymentStatus === 'pending') {
         console.log('🔄 Refetching payment status...')
         checkPaymentStatus()
       }
@@ -121,6 +135,11 @@ function PaymentStatusContent() {
         <div className="flex flex-col items-center justify-center min-h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           <p className="mt-4 text-gray-600">Memeriksa status pembayaran...</p>
+          <div className="mt-4 text-sm text-gray-500 max-w-md text-center">
+            URL Parameters: {searchParams.get('reference') ? `reference=${searchParams.get('reference')}` :
+                           searchParams.get('merchantOrderId') ? `merchantOrderId=${searchParams.get('merchantOrderId')}` :
+                           'None (this may cause an error)'}
+          </div>
         </div>
       </div>
     )
