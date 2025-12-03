@@ -9,11 +9,65 @@ export async function GET(request: NextRequest) {
     const merchantOrderId = searchParams.get('merchantOrderId')
 
     if (!reference && !merchantOrderId) {
+      // Try to get user ID from request and look for recent transactions
+      const authHeader = request.headers.get('authorization')
+      const token = request.cookies.get('auth_token')?.value
+
+      console.log('🔍 No parameters provided, trying fallback methods:', {
+        hasAuthHeader: !!authHeader,
+        hasToken: !!token
+      })
+
+      if (token) {
+        try {
+          // Import authentication function
+          const { authenticateUser } = await import('@/lib/auth/middleware')
+          const user = await authenticateUser(request)
+
+          if (user) {
+            console.log('🔍 Found authenticated user:', user.id)
+
+            // Look for recent transactions for this user
+            const recentTransactions = await BillingService.getUserTransactions(user.id, 5, 0)
+
+            if (recentTransactions.length > 0) {
+              console.log('🔍 Found recent transactions:', recentTransactions.map(t => ({
+                id: t.id,
+                externalId: t.externalId,
+                status: t.status,
+                createdAt: t.createdAt
+              })))
+
+              // Return the most recent transaction
+              const latestTransaction = recentTransactions[0]
+              return NextResponse.json({
+                success: true,
+                fallback: true,
+                message: 'Using recent transaction as fallback (URL parameters were missing)',
+                data: {
+                  transactionId: latestTransaction.id,
+                  merchantOrderId: (latestTransaction.metadata as any)?.merchantOrderId,
+                  reference: latestTransaction.externalId,
+                  amount: latestTransaction.amount,
+                  status: latestTransaction.status === 'COMPLETED' ? 'success' :
+                         latestTransaction.status === 'FAILED' ? 'failed' : 'pending',
+                  paymentStatus: latestTransaction.status,
+                  message: `Status: ${latestTransaction.status}`,
+                  paymentTime: latestTransaction.updatedAt
+                }
+              })
+            }
+          }
+        } catch (authError) {
+          console.error('❌ Auth fallback failed:', authError)
+        }
+      }
+
       return NextResponse.json(
         {
           success: false,
           error: 'Missing reference or merchantOrderId parameter. Please provide either reference or merchantOrderId from the payment URL.',
-          help: 'URL should contain either ?reference=XXX or ?merchantOrderId=XXX parameter'
+          help: 'URL should contain either ?reference=XXX or ?merchantOrderId=XXX parameter. You may need to check your browser URL or complete the payment again.'
         },
         { status: 400 }
       )

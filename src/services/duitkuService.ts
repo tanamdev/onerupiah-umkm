@@ -102,7 +102,7 @@ class DuitkuService {
       process.env.DUITKU_RETURN_URL ||
       `${
         process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-      }/dashboard/billing/payment-status`;
+      }/payment-status`;
     this.apiUrl =
       process.env.DUITKU_API_URL ||
       (process.env.NODE_ENV === 'production'

@@ -24,6 +24,20 @@ function PaymentStatusContent() {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me')
+        setIsAuthenticated(response.ok)
+      } catch {
+        setIsAuthenticated(false)
+      }
+    }
+    checkAuth()
+  }, [])
 
   useEffect(() => {
     const checkPaymentStatus = async () => {
@@ -243,17 +257,35 @@ function PaymentStatusContent() {
                   </div>
 
                   <div className="flex gap-3">
-                    <Link href="/dashboard/billing" className="flex-1">
-                      <Button className="w-full" variant="outline">
-                        Kembali ke Billing
-                      </Button>
-                    </Link>
+                    {isAuthenticated ? (
+                      <>
+                        <Link href="/dashboard/billing" className="flex-1">
+                          <Button className="w-full" variant="outline">
+                            Kembali ke Billing
+                          </Button>
+                        </Link>
 
-                    <Link href="/dashboard" className="flex-1">
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                        Dashboard
-                      </Button>
-                    </Link>
+                        <Link href="/dashboard" className="flex-1">
+                          <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                            Dashboard
+                          </Button>
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link href="/auth/login" className="flex-1">
+                          <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                            Login untuk Melihat Status
+                          </Button>
+                        </Link>
+
+                        <Link href="/pricing" className="flex-1">
+                          <Button className="w-full" variant="outline">
+                            Lihat Paket
+                          </Button>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </>
               ) : (
@@ -266,17 +298,35 @@ function PaymentStatusContent() {
                   </div>
 
                   <div className="flex gap-3">
-                    <Link href="/dashboard/billing" className="flex-1">
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                        Coba Lagi
-                      </Button>
-                    </Link>
+                    {isAuthenticated ? (
+                      <>
+                        <Link href="/dashboard/billing" className="flex-1">
+                          <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                            Coba Lagi
+                          </Button>
+                        </Link>
 
-                    <Link href="/dashboard" className="flex-1">
-                      <Button className="w-full" variant="outline">
-                        Dashboard
-                      </Button>
-                    </Link>
+                        <Link href="/dashboard" className="flex-1">
+                          <Button className="w-full" variant="outline">
+                            Dashboard
+                          </Button>
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link href="/auth/login" className="flex-1">
+                          <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                            Login dan Coba Lagi
+                          </Button>
+                        </Link>
+
+                        <Link href="/pricing" className="flex-1">
+                          <Button className="w-full" variant="outline">
+                            Lihat Paket
+                          </Button>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </>
               )}

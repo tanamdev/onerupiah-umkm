@@ -17,6 +17,7 @@ const publicRoutes = [
   '/auth/forgot-password',
   '/pricing',
   '/unauthorized',
+  '/payment-status', // Payment status page should be accessible without auth
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/logout',
@@ -50,9 +51,21 @@ export async function middleware(request: NextRequest) {
     const token = request.cookies.get('auth_token')?.value
 
     if (!token) {
-      // No token found, redirect to login with return URL
+      // No token found, redirect to login with return URL (including query params)
       const loginUrl = new URL('/auth/login', request.url)
-      loginUrl.searchParams.set('redirect', pathname)
+      // Preserve the full URL (pathname + searchParams) for redirect after login
+      const fullUrl = request.nextUrl.clone()
+      const returnUrl = `${fullUrl.pathname}${fullUrl.search}`
+      loginUrl.searchParams.set('redirect', returnUrl)
+
+      console.log('🔄 Auth redirect:', {
+        originalUrl: request.url,
+        pathname,
+        search: request.nextUrl.search,
+        returnUrl,
+        loginUrl: loginUrl.toString()
+      })
+
       return NextResponse.redirect(loginUrl)
     }
 

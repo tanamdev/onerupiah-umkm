@@ -25,6 +25,15 @@ function LoginContent() {
   // Get redirect parameter from URL
   const redirectTo = searchParams.get('redirect') || '/dashboard'
 
+  // Debug: Log redirect parameter
+  useEffect(() => {
+    console.log('🔍 Login page redirect info:', {
+      redirectTo,
+      searchParams: Object.fromEntries(searchParams.entries()),
+      currentUrl: typeof window !== 'undefined' ? window.location.href : 'N/A'
+    })
+  }, [redirectTo, searchParams])
+
   // Check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
