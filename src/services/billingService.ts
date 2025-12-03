@@ -180,6 +180,15 @@ export const BillingService = {
     })
   },
 
+  async findTransactionByExternalId(externalId: string): Promise<TransactionWithPackage | null> {
+    return await prisma.transaction.findFirst({
+      where: { externalId },
+      include: {
+        package: true
+      }
+    })
+  },
+
   async getUserTransactions(
     userId: string,
     limit: number = 20,

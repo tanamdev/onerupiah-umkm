@@ -101,14 +101,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find transaction by external ID (reference)
-    const transaction = await BillingService.getUserTransactions(
-      '',
-      1000,
-      0
-    ).then((transactions) =>
-      transactions.find((t) => t.externalId === body.reference)
-    );
+    // Find transaction by external ID (reference) - more efficient approach
+    const transaction = await BillingService.findTransactionByExternalId(body.reference);
 
     if (!transaction) {
       console.error('❌ Transaction not found for reference:', body.reference);
