@@ -189,6 +189,15 @@ export const BillingService = {
     })
   },
 
+  async getTransactionById(id: string): Promise<TransactionWithPackage | null> {
+    return await prisma.transaction.findUnique({
+      where: { id },
+      include: {
+        package: true
+      }
+    })
+  },
+
   async getUserTransactions(
     userId: string,
     limit: number = 20,
@@ -204,15 +213,6 @@ export const BillingService = {
       },
       take: limit,
       skip: offset
-    })
-  },
-
-  async getTransactionById(id: string): Promise<TransactionWithPackage | null> {
-    return await prisma.transaction.findUnique({
-      where: { id },
-      include: {
-        package: true
-      }
     })
   },
 

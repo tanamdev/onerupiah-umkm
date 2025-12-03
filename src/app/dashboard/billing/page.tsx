@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useUser } from '@/contexts/UserContext'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { TransactionDetailModal } from '@/components/billing/TransactionDetailModal'
 
 interface Package {
   id: string
@@ -28,7 +29,13 @@ interface Transaction {
   type: string
   period: string
   createdAt: string
+  updatedAt: string
   package: Package
+  packageId: string
+  paymentMethod?: string
+  paymentGateway?: string
+  externalId?: string
+  failureReason?: string
   metadata?: any
 }
 
@@ -62,6 +69,12 @@ export default function BillingPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [billingLoading, setBillingLoading] = useState(true)
   const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'yearly'>('monthly')
+
+  // Modal states
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalLoading, setModalLoading] = useState(false)
 
   const fetchBillingInfo = async () => {
     if (!user?.id) return
@@ -207,6 +220,36 @@ export default function BillingPage() {
     }
   }
 
+  const handleTransactionClick = async (transaction: Transaction) => {
+    try {
+      setModalLoading(true)
+      setSelectedTransaction(transaction)
+      setSelectedPackage(transaction.package)
+      setIsModalOpen(true)
+
+      // Fetch detailed package info if not available
+      if (!transaction.package && transaction.packageId) {
+        const response = await fetch(`/api/transactions/${transaction.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setSelectedPackage(data.data.package)
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error fetching transaction details:', error)
+      alert('Gagal memuat detail transaksi. Silakan coba lagi.')
+    } finally {
+      setModalLoading(false)
+    }
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setSelectedTransaction(null)
+    setSelectedPackage(null)
+    setModalLoading(false)
+  }
+
   if (!user) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -262,7 +305,8 @@ export default function BillingPage() {
                       {billingInfo.recentTransactions.map((transaction) => (
                         <div
                           key={transaction.id}
-                          className="flex items-center justify-between p-4 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-sm"
+                          onClick={() => handleTransactionClick(transaction)}
+                          className="flex items-center justify-between p-4 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-sm cursor-pointer border border-transparent hover:border-blue-200"
                         >
                           <div className="flex-1">
                             <div className="flex items-center gap-3">
@@ -272,6 +316,9 @@ export default function BillingPage() {
                               <Badge className={getStatusColor(transaction.status)}>
                                 {transaction.status}
                               </Badge>
+                              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                                Klik untuk detail
+                              </span>
                             </div>
                             <p className="text-sm text-gray-500 mt-1">
                               {formatDate(transaction.createdAt)} • {transaction.type.toLowerCase()} • {transaction.period.toLowerCase()}
@@ -280,6 +327,9 @@ export default function BillingPage() {
                           <div className="text-right">
                             <p className="font-semibold text-gray-900 text-lg">
                               {formatCurrency(transaction.amount, transaction.currency)}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {transaction.paymentMethod || 'N/A'}
                             </p>
                           </div>
                         </div>
@@ -415,6 +465,15 @@ export default function BillingPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Transaction Detail Modal */}
+      <TransactionDetailModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        transaction={selectedTransaction}
+        packageData={selectedPackage}
+        isLoading={modalLoading}
+      />
     </div>
   )
 }
