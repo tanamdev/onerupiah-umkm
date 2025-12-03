@@ -57,7 +57,9 @@ export default function GambarPage() {
   const [foodSuggestions, setFoodSuggestions] = useState<string[]>([]);
   const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
-  const [isGeminiConfigured, setIsGeminiConfigured] = useState<boolean | null>(null);
+  const [isGeminiConfigured, setIsGeminiConfigured] = useState<boolean | null>(
+    null
+  );
   const [config, setConfig] = useState<GenerationConfig>({
     platingStyle: PRODUCT_STYLES[0],
     backgroundStyle: BACKGROUND_STYLES[0],
@@ -76,7 +78,7 @@ export default function GambarPage() {
   useEffect(() => {
     if (selectedStyle === 'poster') {
       // Set poster-specific defaults when poster mode is selected
-      setConfig(prev => ({
+      setConfig((prev) => ({
         ...prev,
         posterStyle: POSTER_STYLES[0],
         layoutTemplate: POSTER_LAYOUT_TEMPLATES[0],
@@ -85,7 +87,7 @@ export default function GambarPage() {
       }));
     } else {
       // Clear poster fields when realistic mode is selected
-      setConfig(prev => ({
+      setConfig((prev) => ({
         ...prev,
         posterStyle: undefined,
         layoutTemplate: undefined,
@@ -421,7 +423,7 @@ export default function GambarPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
         {/* Input Form */}
-        <Card className="border-gray-300 shadow-md">
+        <Card className='border-gray-300 shadow-md'>
           <CardHeader>
             <CardTitle>Detail Gambar</CardTitle>
             <CardDescription>
@@ -928,7 +930,8 @@ export default function GambarPage() {
               <Alert>
                 <AlertDescription>
                   ℹ️ Fitur AI membutuhkan konfigurasi Gemini API di server.
-                  Hubungi administrator untuk menambahkan kunci `GEMINI_API_KEY`.
+                  Hubungi administrator untuk menambahkan kunci
+                  `GEMINI_API_KEY`.
                 </AlertDescription>
               </Alert>
             )}
@@ -936,7 +939,7 @@ export default function GambarPage() {
         </Card>
 
         {/* Output Preview */}
-        <Card className="border-gray-300 shadow-md">
+        <Card className='border-gray-300 shadow-md'>
           <CardHeader>
             <CardTitle>Hasil Generate</CardTitle>
             <CardDescription>
@@ -1078,7 +1081,6 @@ export default function GambarPage() {
         </Card>
       </div>
 
-    
       {/* Tips & Tricks */}
       <Card className='mt-8 border-gray-300 shadow-md'>
         <CardHeader>

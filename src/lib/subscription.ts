@@ -1,30 +1,34 @@
-import { PrismaClient, SubscriptionPlan, SubscriptionStatus } from '@prisma/client'
+import {
+  PrismaClient,
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 export interface SubscriptionService {
-  createTrialSubscription(userId: string): Promise<void>
-  getUserSubscription(userId: string): Promise<any>
-  isSubscriptionActive(userId: string): Promise<boolean>
-  getSubscriptionDaysLeft(userId: string): Promise<number>
-  upgradeSubscription(userId: string, plan: SubscriptionPlan): Promise<void>
-  cancelSubscription(userId: string): Promise<void>
-  checkAndExpireSubscriptions(): Promise<void>
+  createTrialSubscription(userId: string): Promise<void>;
+  getUserSubscription(userId: string): Promise<any>;
+  isSubscriptionActive(userId: string): Promise<boolean>;
+  getSubscriptionDaysLeft(userId: string): Promise<number>;
+  upgradeSubscription(userId: string, plan: SubscriptionPlan): Promise<void>;
+  cancelSubscription(userId: string): Promise<void>;
+  checkAndExpireSubscriptions(): Promise<void>;
 }
 
 class SubscriptionServiceImpl implements SubscriptionService {
   async createTrialSubscription(userId: string): Promise<void> {
     const existingSubscription = await prisma.subscription.findFirst({
-      where: { userId }
-    })
+      where: { userId },
+    });
 
     if (existingSubscription) {
-      throw new Error('User already has a subscription')
+      throw new Error('User already has a subscription');
     }
 
-    const trialStartDate = new Date()
-    const trialEndDate = new Date(trialStartDate)
-    trialEndDate.setDate(trialEndDate.getDate() + 7) // 7 days trial
+    const trialStartDate = new Date();
+    const trialEndDate = new Date(trialStartDate);
+    trialEndDate.setDate(trialEndDate.getDate() + 7); // 7 days trial
 
     await prisma.subscription.create({
       data: {
@@ -35,81 +39,88 @@ class SubscriptionServiceImpl implements SubscriptionService {
         endDate: trialEndDate,
         monthlyPrice: 0,
         autoRenew: false,
-      }
-    })
+      },
+    });
   }
 
   async getUserSubscription(userId: string): Promise<any> {
     const subscription = await prisma.subscription.findFirst({
       where: {
         userId,
-        status: SubscriptionStatus.ACTIVE
+        status: SubscriptionStatus.ACTIVE,
       },
-      orderBy: { createdAt: 'desc' }
-    })
+      orderBy: { createdAt: 'desc' },
+    });
 
     if (!subscription) {
-      return null
+      return null;
     }
 
     const daysLeft = Math.ceil(
-      (new Date(subscription.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-    )
+      (new Date(subscription.endDate).getTime() - new Date().getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
 
     return {
       ...subscription,
       daysLeft: Math.max(0, daysLeft),
-      isExpired: daysLeft <= 0
-    }
+      isExpired: daysLeft <= 0,
+    };
   }
 
   async isSubscriptionActive(userId: string): Promise<boolean> {
-    const subscription = await this.getUserSubscription(userId)
+    const subscription = await this.getUserSubscription(userId);
 
     if (!subscription) {
-      return false
+      return false;
     }
 
-    return subscription.status === SubscriptionStatus.ACTIVE && !subscription.isExpired
+    return (
+      subscription.status === SubscriptionStatus.ACTIVE &&
+      !subscription.isExpired
+    );
   }
 
   async getSubscriptionDaysLeft(userId: string): Promise<number> {
-    const subscription = await this.getUserSubscription(userId)
+    const subscription = await this.getUserSubscription(userId);
 
     if (!subscription) {
-      return 0
+      return 0;
     }
 
-    return subscription.daysLeft
+    return subscription.daysLeft;
   }
 
-  async upgradeSubscription(userId: string, plan: SubscriptionPlan): Promise<void> {
+  async upgradeSubscription(
+    userId: string,
+    plan: SubscriptionPlan
+  ): Promise<void> {
     const currentSubscription = await prisma.subscription.findFirst({
-      where: { userId }
-    })
+      where: { userId },
+    });
 
-    const startDate = new Date()
-    const endDate = new Date(startDate)
+    const startDate = new Date();
+    const endDate = new Date(startDate);
 
     // Calculate pricing and duration based on plan
-    let monthlyPrice = 0
-    let yearlyPrice: number | undefined = undefined
+    let monthlyPrice = 0;
+    let yearlyPrice: number | undefined = undefined;
 
     switch (plan) {
       case SubscriptionPlan.PREMIUM_MONTHLY:
-        monthlyPrice = 99000 // Rp 99,000 per month
-        endDate.setMonth(endDate.getMonth() + 1)
-        break
+        monthlyPrice = 99000; // Rp 99,000 per month
+        endDate.setMonth(endDate.getMonth() + 1);
+        break;
       case SubscriptionPlan.PREMIUM_YEARLY:
-        monthlyPrice = 59000 // Rp 59,000 per month (billed annually)
-        yearlyPrice = 708000 // Rp 708,000 per year
-        endDate.setFullYear(endDate.getFullYear() + 1)
-        break
+        monthlyPrice = 59000; // Rp 59,000 per month (billed annually)
+        yearlyPrice = 708000; // Rp 708,000 per year
+        endDate.setFullYear(endDate.getFullYear() + 1);
+        break;
       case SubscriptionPlan.FREE:
-        endDate.setFullYear(endDate.getFullYear() + 10) // Long expiry for free plan
-        break
+        endDate.setFullYear(endDate.getFullYear() + 10); // Long expiry for free plan
+        break;
       default:
-        throw new Error('Invalid subscription plan')
+        throw new Error('Invalid subscription plan');
     }
 
     if (currentSubscription) {
@@ -124,8 +135,8 @@ class SubscriptionServiceImpl implements SubscriptionService {
           monthlyPrice,
           yearlyPrice,
           autoRenew: plan !== SubscriptionPlan.FREE,
-        }
-      })
+        },
+      });
     } else {
       // Create new subscription
       await prisma.subscription.create({
@@ -138,8 +149,8 @@ class SubscriptionServiceImpl implements SubscriptionService {
           monthlyPrice,
           yearlyPrice,
           autoRenew: plan !== SubscriptionPlan.FREE,
-        }
-      })
+        },
+      });
     }
   }
 
@@ -151,49 +162,56 @@ class SubscriptionServiceImpl implements SubscriptionService {
     const currentActiveSubscription = await prisma.subscription.findFirst({
       where: {
         userId,
-        status: SubscriptionStatus.ACTIVE
-      }
-    })
+        status: SubscriptionStatus.ACTIVE,
+      },
+    });
 
     const packageData = await prisma.package.findUnique({
-      where: { id: packageId }
-    })
+      where: { id: packageId },
+    });
 
     if (!packageData) {
-      throw new Error('Package not found')
+      throw new Error('Package not found');
     }
 
-    const startDate = new Date()
-    const endDate = new Date(startDate)
+    const startDate = new Date();
+    const endDate = new Date(startDate);
 
     // Calculate duration based on billing period
     if (billingPeriod === 'YEARLY') {
-      endDate.setFullYear(endDate.getFullYear() + 1)
+      endDate.setFullYear(endDate.getFullYear() + 1);
     } else {
-      endDate.setMonth(endDate.getMonth() + 1)
+      endDate.setMonth(endDate.getMonth() + 1);
     }
 
     // Determine subscription plan based on package
-    let subscriptionPlan: SubscriptionPlan
-    if (packageData.name.toLowerCase().includes('premium') || packageData.price > 0) {
-      subscriptionPlan = billingPeriod === 'YEARLY' ? SubscriptionPlan.PREMIUM_YEARLY : SubscriptionPlan.PREMIUM_MONTHLY
+    let subscriptionPlan: SubscriptionPlan;
+    if (
+      packageData.name.toLowerCase().includes('premium') ||
+      packageData.price > 0
+    ) {
+      subscriptionPlan =
+        billingPeriod === 'YEARLY'
+          ? SubscriptionPlan.PREMIUM_YEARLY
+          : SubscriptionPlan.PREMIUM_MONTHLY;
     } else {
-      subscriptionPlan = SubscriptionPlan.FREE
+      subscriptionPlan = SubscriptionPlan.FREE;
     }
 
     if (currentActiveSubscription) {
       // RENEWAL: Extend existing subscription
-      const currentEndDate = new Date(currentActiveSubscription.endDate)
+      const currentEndDate = new Date(currentActiveSubscription.endDate);
 
       // If current subscription is still valid, extend from current end date
       // Otherwise, start from today
-      const extensionStartDate = currentEndDate > new Date() ? currentEndDate : startDate
-      const newEndDate = new Date(extensionStartDate)
+      const extensionStartDate =
+        currentEndDate > new Date() ? currentEndDate : startDate;
+      const newEndDate = new Date(extensionStartDate);
 
       if (billingPeriod === 'YEARLY') {
-        newEndDate.setFullYear(newEndDate.getFullYear() + 1)
+        newEndDate.setFullYear(newEndDate.getFullYear() + 1);
       } else {
-        newEndDate.setMonth(newEndDate.getMonth() + 1)
+        newEndDate.setMonth(newEndDate.getMonth() + 1);
       }
 
       await prisma.subscription.update({
@@ -207,16 +225,16 @@ class SubscriptionServiceImpl implements SubscriptionService {
           yearlyPrice: packageData.yearlyPrice,
           autoRenew: true,
           packageId: packageId,
-        }
-      })
+        },
+      });
 
       console.log('🔄 Subscription Renewed:', {
         userId,
         packageId,
         oldEndDate: currentEndDate,
         newEndDate,
-        billingPeriod
-      })
+        billingPeriod,
+      });
     } else {
       // NEW: Create new subscription
       await prisma.subscription.create({
@@ -230,16 +248,16 @@ class SubscriptionServiceImpl implements SubscriptionService {
           yearlyPrice: packageData.yearlyPrice,
           autoRenew: true,
           packageId: packageId,
-        }
-      })
+        },
+      });
 
       console.log('✅ New Subscription Created:', {
         userId,
         packageId,
         startDate,
         endDate,
-        billingPeriod
-      })
+        billingPeriod,
+      });
     }
   }
 
@@ -247,13 +265,13 @@ class SubscriptionServiceImpl implements SubscriptionService {
     await prisma.subscription.updateMany({
       where: {
         userId,
-        status: SubscriptionStatus.ACTIVE
+        status: SubscriptionStatus.ACTIVE,
       },
       data: {
         status: SubscriptionStatus.CANCELLED,
-        autoRenew: false
-      }
-    })
+        autoRenew: false,
+      },
+    });
   }
 
   async checkAndExpireSubscriptions(): Promise<void> {
@@ -261,20 +279,20 @@ class SubscriptionServiceImpl implements SubscriptionService {
       where: {
         status: SubscriptionStatus.ACTIVE,
         endDate: {
-          lt: new Date()
-        }
-      }
-    })
+          lt: new Date(),
+        },
+      },
+    });
 
     for (const subscription of expiredSubscriptions) {
       await prisma.subscription.update({
         where: { id: subscription.id },
         data: {
-          status: SubscriptionStatus.EXPIRED
-        }
-      })
+          status: SubscriptionStatus.EXPIRED,
+        },
+      });
     }
   }
 }
 
-export const subscriptionService = new SubscriptionServiceImpl()
+export const subscriptionService = new SubscriptionServiceImpl();
