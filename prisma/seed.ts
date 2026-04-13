@@ -19,7 +19,7 @@ async function main() {
     where: { email: adminEmail },
     update: {
       password: hashedPassword,
-      role: UserRole.SUPER_ADMIN, // Pastikan menjadi SUPER_ADMIN
+      role: UserRole.SUPER_ADMIN,
       isActive: true,
       emailVerified: true
     },
@@ -35,10 +35,52 @@ async function main() {
 
   console.log(`✅ Admin user seeded berhasil!`)
   console.log(`-----------------------------------`)
-  console.log(`Email    : ${adminEmail}`)
-  console.log(`Password : ${adminPassword}`)
-  console.log(`Role     : ${admin.role}`)
-  console.log(`-----------------------------------`)
+  
+  // SEED PACKAGES
+  const freePackage = await prisma.package.upsert({
+    where: { id: 'package-free' },
+    update: {},
+    create: {
+      id: 'package-free',
+      name: 'Free Trial',
+      description: 'Coba gratis layanan kami selama 7 hari',
+      price: 0,
+      currency: 'IDR',
+      duration: 7,
+      maxContentGenerations: 5,
+      maxImageGenerations: 5,
+      features: JSON.stringify([
+        "5 Generate Gambar",
+        "5 Generate Konten",
+        "Akses 7 Hari"
+      ]),
+      isActive: true,
+    }
+  })
+
+  const proPackage = await prisma.package.upsert({
+    where: { id: 'package-pro' },
+    update: {},
+    create: {
+      id: 'package-pro',
+      name: 'Pro',
+      description: 'Paket profesional untuk bisnis Anda',
+      price: 100000,
+      currency: 'IDR',
+      duration: 30,
+      maxContentGenerations: 50,
+      maxImageGenerations: 30,
+      features: JSON.stringify([
+        "30 Generate Gambar",
+        "50 Generate Konten",
+        "Akses 30 Hari",
+        "Prioritas Support"
+      ]),
+      isActive: true,
+    }
+  })
+
+  console.log(`✅ Packages seeded berhasil! (Free & Pro)`)
 }
 
 main()

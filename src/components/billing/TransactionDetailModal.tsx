@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { downloadInvoice } from '@/utils/invoiceGenerator'
 
 interface Package {
   id: string
@@ -123,7 +124,11 @@ export function TransactionDetailModal({
     })
   }
 
+
+
   if (!transaction) return null
+
+  const isSuccess = ['SUCCESS', 'COMPLETED'].includes(transaction.status?.toUpperCase())
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -309,6 +314,12 @@ export function TransactionDetailModal({
               <Button variant="outline" onClick={onClose} className="flex-1">
                 Tutup
               </Button>
+              {isSuccess && (
+                <Button onClick={() => downloadInvoice(transaction, packageData)} className="flex-1 bg-green-600 hover:bg-green-700 text-white border-none shadow-sm">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                  Download Invoice
+                </Button>
+              )}
               {transaction.status === 'FAILED' && packageData && (
                 <Button
                   onClick={() => {
