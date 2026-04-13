@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, CreditCard, Activity, Package } from 'lucide-react'
+import { TransactionsChart } from './TransactionsChart'
 
 // Server Component
 export default async function AdminDashboardPage() {
@@ -34,6 +35,37 @@ export default async function AdminDashboardPage() {
       package: { select: { name: true } }
     }
   })
+
+  // Fetch transactions for the chart (last 30 days)
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const chartTransactions = await prisma.transaction.findMany({
+    where: {
+      status: 'COMPLETED',
+      createdAt: { gte: thirtyDaysAgo }
+    },
+    select: {
+      createdAt: true,
+      amount: true
+    },
+    orderBy: { createdAt: 'asc' }
+  })
+
+  // Group transactions by date
+  const groupedData = chartTransactions.reduce((acc, curr) => {
+    const date = curr.createdAt.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })
+    if (!acc[date]) {
+      acc[date] = 0
+    }
+    acc[date] += curr.amount
+    return acc
+  }, {} as Record<string, number>)
+
+  const chartData = Object.keys(groupedData).map(date => ({
+    date,
+    amount: groupedData[date]
+  }))
 
   return (
     <div className="space-y-8">
@@ -95,6 +127,8 @@ export default async function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <TransactionsChart data={chartData} />
 
       <div className="grid gap-6 md:grid-cols-2">
          {/* Recent Users */}
