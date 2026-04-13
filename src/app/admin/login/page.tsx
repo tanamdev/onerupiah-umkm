@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
 
 function AdminLoginContent() {
   const searchParams = useSearchParams()
@@ -67,10 +68,13 @@ function AdminLoginContent() {
         throw new Error(data.message || 'Login gagal')
       }
 
+      toast.success('Login berhasil')
       window.location.href = redirectTo
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat login')
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat login'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }

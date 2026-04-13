@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AuthLayout } from '@/components/layout/auth-layout'
+import { toast } from 'sonner'
 
 const layoutCopy = {
   title: 'Masuk ke Akun Anda',
@@ -83,11 +84,15 @@ function LoginContent() {
         throw new Error(data.message || 'Login gagal')
       }
 
+      toast.success('Login berhasil')
+
       // Redirect to the intended page or dashboard
       window.location.href = redirectTo
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat login')
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat login'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }

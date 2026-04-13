@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { QueryClientProviderWrapper } from '@/providers/query-client-provider';
 import { NavbarFooterWrapper } from '@/components/layout/NavbarFooterWrapper';
+import { Toaster } from 'sonner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -91,6 +92,7 @@ export default function RootLayout({
           <NavbarFooterWrapper>
             {children}
           </NavbarFooterWrapper>
+          <Toaster position="top-center" richColors />
         </QueryClientProviderWrapper>
       </body>
     </html>

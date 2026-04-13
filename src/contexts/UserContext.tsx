@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { activityLogger } from '@/services/activityLogger'
+import { toast } from 'sonner'
 
 export interface UserData {
   id: string
@@ -105,12 +106,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
       if (response.ok) {
         setUser(null)
+        toast.success('Berhasil keluar')
         // Redirect to login page
         window.location.href = '/auth/login'
       } else {
         // If API fails, still clear user state and redirect
         setUser(null)
         console.error('Logout failed')
+        toast.error('Logout gagal')
         window.location.href = '/auth/login'
       }
     } catch (error) {
