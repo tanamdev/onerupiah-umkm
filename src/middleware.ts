@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { jwtVerify } from 'jose'
-
-// JWT Secret - seharusnya sama dengan yang digunakan di lib/auth/jwt.ts
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production'
-)
+import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 // Protected routes yang memerlukan authentication
-const protectedRoutes = ['/dashboard', '/api/user', '/api/subscription', '/api/content', '/api/image']
+const protectedRoutes = [
+  '/dashboard',
+  '/api/user',
+  '/api/subscription',
+  '/api/content',
+  '/api/image',
+];
 
 // Public routes yang tidak memerlukan authentication
 const publicRoutes = [
@@ -21,17 +22,17 @@ const publicRoutes = [
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/logout',
-  '/api/auth/me'
-]
+  '/api/auth/me',
+];
 
 // Admin routes yang memerlukan authentication & role ADMIN/SUPER_ADMIN
-const adminRoutes = ['/admin', '/api/admin']
+const adminRoutes = ['/admin', '/api/admin'];
 
 // Public admin routes
-const publicAdminRoutes = ['/admin/login', '/api/admin/auth/login']
+const publicAdminRoutes = ['/admin/login', '/api/admin/auth/login'];
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname } = request.nextUrl;
 
   // Skip middleware untuk static files dan API routes yang tidak perlu protection
   if (
@@ -39,101 +40,81 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/auth') ||
     pathname.includes('.') // static files seperti .css, .js, .png, etc.
   ) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   // Check if current path is protected
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
-  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
-  const isPublicAdminRoute = publicAdminRoutes.some(route => pathname === route || pathname.startsWith(route))
-  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route))
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
+  const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
+  const isPublicAdminRoute = publicAdminRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route),
+  );
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route),
+  );
 
   // If it's a public route and not a protected one, allow access
   if (isPublicAdminRoute) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   if (isPublicRoute && !isProtectedRoute && !isAdminRoute) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   // For Admin routes, check authentication and role
   if (isAdminRoute && !isPublicAdminRoute) {
-    const token = request.cookies.get('auth_token')?.value
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
 
     if (!token) {
-      const loginUrl = new URL('/admin/login', request.url)
-      return NextResponse.redirect(loginUrl)
+      const loginUrl = new URL('/admin/login', request.url);
+      return NextResponse.redirect(loginUrl);
     }
 
-    try {
-      const { payload } = await jwtVerify(token, JWT_SECRET)
-
-      if (!payload.userId) {
-        throw new Error('Invalid token: no userId found')
-      }
-
-      // Check role for admin access
-      if (payload.role !== 'ADMIN' && payload.role !== 'SUPER_ADMIN') {
-        return NextResponse.redirect(new URL('/unauthorized', request.url))
-      }
-
-      // Token and role are valid
-      return NextResponse.next()
-    } catch (error) {
-      console.error('Middleware admin auth error:', error)
-      const response = NextResponse.redirect(new URL('/admin/login', request.url))
-      response.cookies.delete('auth_token')
-      return response
+    const role = (token as any).role;
+    if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
+      return NextResponse.redirect(new URL('/unauthorized', request.url));
     }
+
+    return NextResponse.next();
   }
 
   // For protected routes, check authentication
   if (isProtectedRoute) {
-    // Get token from cookies
-    const token = request.cookies.get('auth_token')?.value
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
 
     if (!token) {
       // No token found, redirect to login with return URL (including query params)
-      const loginUrl = new URL('/auth/login', request.url)
+      const loginUrl = new URL('/auth/login', request.url);
       // Preserve the full URL (pathname + searchParams) for redirect after login
-      const fullUrl = request.nextUrl.clone()
-      const returnUrl = `${fullUrl.pathname}${fullUrl.search}`
-      loginUrl.searchParams.set('redirect', returnUrl)
+      const fullUrl = request.nextUrl.clone();
+      const returnUrl = `${fullUrl.pathname}${fullUrl.search}`;
+      loginUrl.searchParams.set('redirect', returnUrl);
 
       console.log('🔄 Auth redirect:', {
         originalUrl: request.url,
         pathname,
         search: request.nextUrl.search,
         returnUrl,
-        loginUrl: loginUrl.toString()
-      })
+        loginUrl: loginUrl.toString(),
+      });
 
-      return NextResponse.redirect(loginUrl)
+      return NextResponse.redirect(loginUrl);
     }
 
-    try {
-      // Verify JWT token
-      const { payload } = await jwtVerify(token, JWT_SECRET)
-
-      if (!payload.userId) {
-        throw new Error('Invalid token: no userId found')
-      }
-
-      // Token is valid, allow access
-      return NextResponse.next()
-    } catch (error) {
-      console.error('Middleware auth error:', error)
-
-      // Invalid token, clear cookie and redirect to login
-      const response = NextResponse.redirect(new URL('/auth/login', request.url))
-      response.cookies.delete('auth_token')
-      return response
-    }
+    return NextResponse.next();
   }
 
   // Default: allow access
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
 // Configure middleware untuk berjalan hanya pada routes tertentu
@@ -147,4 +128,4 @@ export const config = {
      */
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
-}
+};

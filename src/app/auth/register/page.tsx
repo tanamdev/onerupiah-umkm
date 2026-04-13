@@ -1,11 +1,12 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { AuthLayout } from '@/components/layout/auth-layout'
+import { useState } from 'react';
+import Link from 'next/link';
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { AuthLayout } from '@/components/layout/auth-layout';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -14,66 +15,67 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
     agreeTerms: false,
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
-    setFormData(prev => ({
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
+      [name]: type === 'checkbox' ? checked : value,
+    }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
-      }))
+        [name]: '',
+      }));
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Nama lengkap harus diisi'
+      newErrors.name = 'Nama lengkap harus diisi';
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email harus diisi'
+      newErrors.email = 'Email harus diisi';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Format email tidak valid'
+      newErrors.email = 'Format email tidak valid';
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password harus diisi'
+      newErrors.password = 'Password harus diisi';
     } else if (formData.password.length < 8) {
-      newErrors.password = 'Password minimal 8 karakter'
+      newErrors.password = 'Password minimal 8 karakter';
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Konfirmasi password harus diisi'
+      newErrors.confirmPassword = 'Konfirmasi password harus diisi';
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Password tidak cocok'
+      newErrors.confirmPassword = 'Password tidak cocok';
     }
 
     if (!formData.agreeTerms) {
-      newErrors.agreeTerms = 'Anda harus menyetujui syarat dan ketentuan'
+      newErrors.agreeTerms = 'Anda harus menyetujui syarat dan ketentuan';
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       // Simulate API call
@@ -87,23 +89,50 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Registrasi gagal')
+        throw new Error(data.message || 'Registrasi gagal');
       }
 
       // Redirect to login page
-      window.location.href = '/auth/login?message=registration_success'
-
+      window.location.href = '/auth/login?message=registration_success';
     } catch (err) {
-      setErrors({ general: err instanceof Error ? err.message : 'Terjadi kesalahan saat registrasi' })
+      setErrors({
+        general:
+          err instanceof Error
+            ? err.message
+            : 'Terjadi kesalahan saat registrasi',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+
+  const handleGoogleRegister = async () => {
+    if (!formData.agreeTerms) {
+      setErrors((prev) => ({
+        ...prev,
+        agreeTerms: 'Anda harus menyetujui syarat dan ketentuan',
+      }));
+      return;
+    }
+
+    setIsGoogleLoading(true);
+    setErrors((prev) => ({ ...prev, general: '' }));
+
+    try {
+      await signIn('google', { callbackUrl: '/dashboard' });
+    } catch (error) {
+      setErrors((prev) => ({
+        ...prev,
+        general: 'Registrasi dengan Google gagal. Silakan coba lagi.',
+      }));
+      setIsGoogleLoading(false);
+    }
+  };
 
   return (
     <AuthLayout
@@ -182,7 +211,9 @@ export default function RegisterPage() {
               className={`mt-1 ${errors.confirmPassword ? 'border-red-500' : ''}`}
             />
             {errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.confirmPassword}
+              </p>
             )}
           </div>
         </div>
@@ -199,7 +230,10 @@ export default function RegisterPage() {
                 errors.agreeTerms ? 'border-red-500' : ''
               }`}
             />
-            <label htmlFor="agreeTerms" className="ml-2 block text-sm text-gray-700">
+            <label
+              htmlFor="agreeTerms"
+              className="ml-2 block text-sm text-gray-700"
+            >
               Saya menyetujui{' '}
               <Link href="#" className="text-blue-600 hover:text-blue-500">
                 Syarat dan Ketentuan
@@ -218,21 +252,50 @@ export default function RegisterPage() {
         <Button
           type="submit"
           className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900"
-          disabled={isLoading}
+          disabled={isLoading || isGoogleLoading}
         >
           {isLoading ? 'Mendaftar...' : 'Daftar Sekarang'}
+        </Button>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-gray-500">atau</span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={handleGoogleRegister}
+          disabled={isLoading || isGoogleLoading}
+        >
+          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 10.2v3.9h5.4c-.2 1.3-1.6 3.9-5.4 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.9 1.5l2.7-2.6C16.9 3.3 14.6 2.4 12 2.4 6.9 2.4 2.7 6.6 2.7 11.7S6.9 21 12 21c6.9 0 9.1-4.8 9.1-7.3 0-.5-.1-.8-.1-1.2H12z"
+            />
+          </svg>
+          {isGoogleLoading
+            ? 'Mengalihkan ke Google...'
+            : 'Daftar dengan Google'}
         </Button>
 
         <div className="text-center">
           <span className="text-sm text-gray-600">
             Sudah punya akun?{' '}
-            <Link href="/auth/login" className="text-blue-600 hover:text-blue-500 font-medium">
+            <Link
+              href="/auth/login"
+              className="text-blue-600 hover:text-blue-500 font-medium"
+            >
               Masuk di sini
             </Link>
           </span>
         </div>
-
-          </form>
+      </form>
     </AuthLayout>
-  )
+  );
 }

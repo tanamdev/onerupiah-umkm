@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(
     {
       message:
-        'Endpoint login admin custom dinonaktifkan. Gunakan NextAuth credentials signIn.',
+        'Endpoint exchange dinonaktifkan. Gunakan sesi NextAuth langsung.',
     },
     { status: 410 },
   );

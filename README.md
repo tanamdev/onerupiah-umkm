@@ -68,6 +68,7 @@ src/
 ## API Structure
 
 ### Users API
+
 - `GET /api/users` - Get paginated users
 - `POST /api/users` - Create a new user
 - `GET /api/users/[id]` - Get a specific user
@@ -75,6 +76,7 @@ src/
 - `DELETE /api/users/[id]` - Delete a user
 
 ### Posts API
+
 - `GET /api/posts` - Get paginated posts
 - `POST /api/posts` - Create a new post
 
@@ -83,15 +85,15 @@ src/
 ### Using Custom Hooks
 
 ```tsx
-import { useUsers, useCreateUser } from '@/hooks'
+import { useUsers, useCreateUser } from '@/hooks';
 
 function UserComponent() {
-  const { data: users, isLoading } = useUsers({ page: 1, limit: 10 })
-  const createUserMutation = useCreateUser()
+  const { data: users, isLoading } = useUsers({ page: 1, limit: 10 });
+  const createUserMutation = useCreateUser();
 
   const handleCreateUser = async (userData) => {
-    await createUserMutation.mutateAsync(userData)
-  }
+    await createUserMutation.mutateAsync(userData);
+  };
 
   // ... component JSX
 }
@@ -100,24 +102,24 @@ function UserComponent() {
 ### Using API Client
 
 ```tsx
-import { apiClient } from '@/lib/api/client'
-import { userSchema } from '@/lib/validations/schemas'
+import { apiClient } from '@/lib/api/client';
+import { userSchema } from '@/lib/validations/schemas';
 
-const user = await apiClient.get('/users/1', userSchema)
+const user = await apiClient.get('/users/1', userSchema);
 ```
 
 ### Validation with Zod
 
 ```tsx
-import { z } from 'zod'
-import { createUserSchema } from '@/lib/validations/schemas'
+import { z } from 'zod';
+import { createUserSchema } from '@/lib/validations/schemas';
 
 const userData = {
   name: 'John Doe',
-  email: 'john@example.com'
-}
+  email: 'john@example.com',
+};
 
-const validatedUser = createUserSchema.parse(userData)
+const validatedUser = createUserSchema.parse(userData);
 ```
 
 ## Environment Variables
@@ -132,6 +134,8 @@ NEXT_PUBLIC_API_URL=http://localhost:3000/api
 # Authentication (if needed)
 # NEXTAUTH_SECRET=""
 # NEXTAUTH_URL="http://localhost:3000"
+# GOOGLE_CLIENT_ID=""
+# GOOGLE_CLIENT_SECRET=""
 ```
 
 ## Scripts

@@ -1,42 +1,25 @@
-import { NextRequest } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { verifyToken } from '@/lib/auth/jwt'
+import { NextRequest } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getToken } from 'next-auth/jwt';
 
 export async function authenticateUser(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth_token')?.value
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
 
     if (!token) {
-      return null
+      return null;
     }
 
-    const decoded = await verifyToken(token)
-    if (!decoded) {
-      return null
-    }
-
-    // Check if session exists and is valid
-    const session = await prisma.userSession.findFirst({
-      where: {
-        token,
-        isActive: true,
-        expiresAt: {
-          gt: new Date()
-        }
-      }
-    })
-
-    if (!session) {
-      return null
-    }
-
-    // Get user details - add safety check for userId
-    if (!decoded.userId) {
-      return null
+    const userEmail = token.email;
+    if (!userEmail) {
+      return null;
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { email: userEmail.toLowerCase().trim() },
       select: {
         id: true,
         email: true,
@@ -70,17 +53,16 @@ export async function authenticateUser(request: NextRequest) {
         aiTargetAudience: true,
         aiPlatforms: true,
         aiCustomInstructions: true,
-      }
-    })
+      },
+    });
 
     if (!user || !user.isActive) {
-      return null
+      return null;
     }
 
-    return user
-
+    return user;
   } catch (error) {
-    console.error('Authentication error:', error)
-    return null
+    console.error('Authentication error:', error);
+    return null;
   }
 }

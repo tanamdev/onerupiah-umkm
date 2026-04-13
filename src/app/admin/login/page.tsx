@@ -1,84 +1,97 @@
-'use client'
+'use client';
 
-import { Suspense, useState, useEffect } from 'react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
+import { Suspense, useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 function AdminLoginContent() {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   // Get redirect parameter from URL
-  const redirectTo = searchParams.get('redirect') || '/admin/dashboard'
+  const redirectTo = searchParams.get('redirect') || '/admin/dashboard';
 
   // Make sure not to redirect standard users back to admin login if they shouldn't be here
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/me')
+        const response = await fetch('/api/auth/me');
         if (response.ok) {
-           const data = await response.json()
-           if (data.user && (data.user.role === 'ADMIN' || data.user.role === 'SUPER_ADMIN')) {
-              window.location.href = redirectTo
-           }
+          const data = await response.json();
+          if (
+            data.user &&
+            (data.user.role === 'ADMIN' || data.user.role === 'SUPER_ADMIN')
+          ) {
+            window.location.href = redirectTo;
+          }
         }
       } catch (error) {
-        console.log('User not authenticated')
+        console.log('User not authenticated');
       }
-    }
+    };
 
-    checkAuth()
-  }, [redirectTo])
+    checkAuth();
+  }, [redirectTo]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-    if (error) setError('')
-  }
+      [name]: value,
+    }));
+    if (error) setError('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
     try {
-      const response = await fetch('/api/admin/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+        callbackUrl: redirectTo,
+      });
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login gagal')
+      if (!result || result.error) {
+        throw new Error('Email atau password salah');
       }
 
-      toast.success('Login berhasil')
-      window.location.href = redirectTo
+      const meResponse = await fetch('/api/auth/me');
+      const meData = await meResponse.json();
 
+      if (
+        !meResponse.ok ||
+        !meData?.user ||
+        (meData.user.role !== 'ADMIN' && meData.user.role !== 'SUPER_ADMIN')
+      ) {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        throw new Error('Akses ditolak. Anda bukan Admin.');
+      }
+
+      toast.success('Login berhasil');
+      window.location.href = result.url || redirectTo;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat login'
-      setError(errorMessage)
-      toast.error(errorMessage)
+      const errorMessage =
+        err instanceof Error ? err.message : 'Terjadi kesalahan saat login';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 relative overflow-hidden">
@@ -106,13 +119,20 @@ function AdminLoginContent() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="bg-red-50/80 backdrop-blur border border-red-100 rounded-xl p-4 animate-in fade-in zoom-in duration-300">
-                <p className="text-sm font-medium text-red-600 text-center">{error}</p>
+                <p className="text-sm font-medium text-red-600 text-center">
+                  {error}
+                </p>
               </div>
             )}
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Email Address
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -127,7 +147,12 @@ function AdminLoginContent() {
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                  <Label
+                    htmlFor="password"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Password
+                  </Label>
                 </div>
                 <Input
                   id="password"
@@ -151,15 +176,18 @@ function AdminLoginContent() {
             </Button>
           </form>
         </div>
-        
+
         <div className="mt-8 text-center">
-            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
-              &larr; Back to Main Website
-            </Link>
+          <Link
+            href="/"
+            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            &larr; Back to Main Website
+          </Link>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function AdminLoginPage() {
@@ -167,11 +195,11 @@ export default function AdminLoginPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-zinc-50">
-           <div className="animate-pulse bg-white/50 rounded-3xl w-full max-w-md h-96"></div>
+          <div className="animate-pulse bg-white/50 rounded-3xl w-full max-w-md h-96"></div>
         </div>
       }
     >
       <AdminLoginContent />
     </Suspense>
-  )
+  );
 }
