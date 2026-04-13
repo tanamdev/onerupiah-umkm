@@ -1,677 +1,399 @@
-'use client'
+import { prisma } from '@/lib/prisma'
+import {
+  Sparkles,
+  Bot,
+  FileEdit,
+  Megaphone,
+  LineChart,
+  ArrowRight,
+  BarChart,
+  PlayCircle,
+  Send,
+  CheckCircle,
+  Star
+} from 'lucide-react'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+export default async function Home() {
+  const packages = await prisma.package.findMany({
+    where: { isActive: true },
+    orderBy: { price: 'asc' }
+  })
 
-export default function Home() {
-  const [isYearly, setIsYearly] = useState(false)
+  const formatPrice = (price: number) => {
+    if (price === 0) return 'Gratis'
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price)
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="bg-surface inter text-on-surface selection:bg-secondary-fixed pb-12 md:pb-20">
       {/* Spacer for fixed header */}
-      <div className="h-16"></div>
-      {/* HERO SECTION */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800 text-white">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
-          <div className="text-center">
-            <Badge className="mb-6 bg-white/20 text-white border-white/30 hover:bg-white/30">
-              🚀 AI Assistant All-in-One untuk UMKM Indonesia
-            </Badge>
-            <h1 className="text-5xl lg:text-7xl font-bold mb-8 leading-tight">
-              Asisten UMKM:
-              <span className="block text-blue-200">Wujudkan Bisnis Impian Anda</span>
+      <div className="h-16 md:h-20"></div>
+
+      {/* Hero Section */}
+      <section className="relative pt-20 md:pt-32 pb-16 md:pb-20 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 flex flex-col lg:flex-row items-center gap-10 md:gap-12">
+          <div className="flex-1 text-center lg:text-left z-10">
+            <span className="bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider mb-6 inline-block">Masa Depan UMKM Indonesia</span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl plus-jakarta-sans font-extrabold text-primary leading-tight mb-4 md:mb-6 tracking-tight">
+              Asisten UMKM: Wujudkan <span className="text-secondary">Bisnis Impian</span> Anda
             </h1>
-            <p className="text-xl lg:text-2xl mb-12 text-blue-100 max-w-4xl mx-auto">
-              AI yang membantu Anda membuat konten, gambar, caption, copywriting, desain,
-              ide bisnis, laporan, dan strategi marketing otomatis.
+            <p className="text-base md:text-lg text-on-surface-variant mb-8 md:mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              Tingkatkan skala bisnis Anda dengan kecerdasan buatan. Buat konten, kelola marketing, dan optimalkan operasional hanya dalam hitungan detik.
             </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 max-w-4xl mx-auto">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="text-3xl mb-2">📝</div>
-                <div className="font-semibold">Konten Otomatis</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="text-3xl mb-2">🎨</div>
-                <div className="font-semibold">Generate Gambar</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="text-3xl mb-2">📈</div>
-                <div className="font-semibold">Marketing AI</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white hover:bg-blue-50 text-blue-600 text-lg px-8 py-4 rounded-xl font-bold">
-                Coba Gratis Sekarang →
-              </Button>
-              <Button variant="outline" size="lg" className="bg-white/10 hover:bg-white/20 text-white border-white text-lg px-8 py-4 rounded-xl font-bold">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+              <button className="bg-gradient-primary text-on-primary px-6 py-3.5 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg shadow-xl shadow-primary/10 transition-transform active:scale-95 w-full sm:w-auto">
+                Coba Gratis Sekarang
+              </button>
+              <button className="bg-surface-container-highest text-primary px-6 py-3.5 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg transition-transform active:scale-95 w-full sm:w-auto">
                 Lihat Demo
-              </Button>
+              </button>
             </div>
           </div>
-        </div>
-
-        {/* Visual Elements */}
-        <div className="absolute top-20 right-10 w-32 h-32 bg-blue-400 rounded-full opacity-20 blur-xl"></div>
-        <div className="absolute bottom-20 left-10 w-40 h-40 bg-blue-300 rounded-full opacity-20 blur-xl"></div>
-      </section>
-
-      {/* PROBLEM SECTION */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Tertinggal di Era Digital?
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              UMKM seringkali kesulitan bersaing dengan brand besar karena keterbatasan resources
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="border-l-4 border-red-500">
-              <CardContent className="p-6">
-                <div className="text-4xl mb-4">😰</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Susah Bikin Konten</h3>
-                <p className="text-gray-600">Ide konten habis, bingung mau posting apa setiap hari</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-orange-500">
-              <CardContent className="p-6">
-                <div className="text-4xl mb-4">🤔</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Tidak Ada Ide Marketing</h3>
-                <p className="text-gray-600">Strategi marketing monoton, penjualan stagnan</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-yellow-500">
-              <CardContent className="p-6">
-                <div className="text-4xl mb-4">📱</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Konten Kurang Menarik</h3>
-                <p className="text-gray-600">Visual dan caption tidak profesional, engagement rendah</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-green-500">
-              <CardContent className="p-6">
-                <div className="text-4xl mb-4">✍️</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Copywriting Biasa Saja</h3>
-                <p className="text-gray-600">Kata-kata tidak menarik, tidak ada daya jual</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-blue-500">
-              <CardContent className="p-6">
-                <div className="text-4xl mb-4">🎨</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Tidak Punya Tim Desain</h3>
-                <p className="text-gray-600">Visual produk tidak menarik, brand terlihat murahan</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-purple-500">
-              <CardContent className="p-6">
-                <div className="text-4xl mb-4">📊</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Laporan Rumit</h3>
-                <p className="text-gray-600">Data bisnis berantakan, tidak tahu performa toko</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* SOLUTION SECTION */}
-      <section id="fitur" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-blue-100 text-blue-800">SOLUSI KOMPLIT</Badge>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Asisten UMKM Solusinya
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Semua yang Anda butuhkan untuk sukses di dunia digital dalam satu platform
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="text-center hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🎨</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Generate Konten</h3>
-                <p className="text-gray-600">Bikin caption, postingan blog, email marketing otomatis</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">✍️</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Generate Konten</h3>
-                <p className="text-gray-600">Bikin caption, postingan blog, email marketing otomatis</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🎨</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Generate Gambar</h3>
-                <p className="text-gray-600">Desain produk, logo, postingan sosmed hanya dengan deskripsi</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">#️⃣</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Auto Caption</h3>
-                <p className="text-gray-600">Caption menarik + hashtag trending untuk semua platform</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">💡</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Ide Bisnis</h3>
-                <p className="text-gray-600">Dapatkan ide produk baru dan insight pasar yang profitable</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">📈</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Strategi Marketing</h3>
-                <p className="text-gray-600">Ide marketing harian yang sudah dipersonalisasi untuk bisnis Anda</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🔍</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Riset Kompetitor</h3>
-                <p className="text-gray-600">Analisis kompetitor, trend pasar, dan peluang bisnis</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">📊</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Laporan Bisnis</h3>
-                <p className="text-gray-600">Dashboard real-time sales, customer, dan performa bisnis</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* BENEFITS SECTION */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-              Manfaat Luar Biasa untuk UMKM Anda
-            </h2>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-              Transformasi bisnis dari traditional menjadi digital powerhouse
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20">
-              <div className="text-5xl mb-4">⏱️</div>
-              <h3 className="text-2xl font-bold mb-3">Hemat 90% Waktu</h3>
-              <p className="text-blue-100">Tugas yang biasanya 5 jam sekarang cuma 30 menit dengan AI</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20">
-              <div className="text-5xl mb-4">💰</div>
-              <h3 className="text-2xl font-bold mb-3">Hemat 80% Biaya</h3>
-              <p className="text-blue-100">Tidak perlu bayar tim social media, desainer, copywriter</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20">
-              <div className="text-5xl mb-4">🚀</div>
-              <h3 className="text-2xl font-bold mb-3">Konten Setiap Hari</h3>
-              <p className="text-blue-100">Tidak pernah kehabisan ide konten untuk 30 hari ke depan</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20">
-              <div className="text-5xl mb-4">📈</div>
-              <h3 className="text-2xl font-bold mb-3">Omset Naik 3x</h3>
-              <p className="text-blue-100">Marketing yang efektif, closing rate meningkat drastis</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20">
-              <div className="text-5xl mb-4">🏆</div>
-              <h3 className="text-2xl font-bold mb-3">Brand Profesional</h3>
-              <p className="text-blue-100">Visual dan konten berkualitas tinggi setiap saat</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20">
-              <div className="text-5xl mb-4">🔥</div>
-              <h3 className="text-2xl font-bold mb-3">Competitive Edge</h3>
-              <p className="text-blue-100">Lebih advanced dari kompetitor yang masih manual</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* DEMO SECTION */}
-      <section id="demo" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Lihat Bagaimana Asisten UMKM Bekerja
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Demo nyata fitur-fitur andalan yang akan revolusion bisnis Anda
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                <CardTitle className="flex items-center gap-2">
-                  <span>🎯</span> Generate Konten Premium
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="bg-gray-100 rounded-lg p-4">
-                    <p className="font-semibold text-gray-900">Input:</p>
-                    <p className="text-gray-700">Bikin content marketing untuk coffee shop</p>
-                  </div>
-                  <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
-                    <p className="font-semibold text-blue-900">Hasil:</p>
-                    <p className="text-blue-800">📅 Marketing Content Plan - Coffee Shop:</p>
-                    <ul className="mt-2 space-y-1 text-blue-700">
-                      <li>• Senin: "Monday Coffee Motivation" quotes</li>
-                      <li>• Rabu: "Behind the Bar" barista spotlight</li>
-                      <li>• Jumat: "Coffee Pairing Friday" with snacks</li>
-                      <li>• Weekend: "Weekend Vibes" cozy ambiance</li>
-                      <li>• Monthly: Customer testimonials & reviews</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                <CardTitle className="flex items-center gap-2">
-                  <span>✍️</span> Generate Caption Instagram
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="bg-gray-100 rounded-lg p-4">
-                    <p className="font-semibold text-gray-900">Input:</p>
-                    <p className="text-gray-700">Jual gamis katun premium warna pastel</p>
-                  </div>
-                  <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
-                    <p className="font-semibold text-blue-900">Hasil:</p>
-                    <p className="text-blue-800">✨ ELEGAN & NYAMAN HANYA DALAM SATU GAMIS! ✨</p>
-                    <p className="text-blue-700 mt-2">
-                      Perkenalkan koleksi terbaru kami - Gamis Katun Premium dengan 5 warna pastel yang memikat:
-                    </p>
-                    <p className="text-blue-700 mt-2">🌸 Baby Pink | 💙 Sky Blue | 💚 Mint Green | 💛 Butter | 🌼 Lavender</p>
-                    <p className="text-blue-700 mt-2">Material 100% katun premium, adem, tidak mudah kusut, dan nyaman sehari-hari!</p>
-                    <p className="text-blue-600 mt-2">#gamiskatun #gamispastel #fashionmuslim #ootdhijab #gamispremium</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                <CardTitle className="flex items-center gap-2">
-                  <span>🎨</span> Generate Gambar Produk
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="bg-gray-100 rounded-lg p-4">
-                    <p className="font-semibold text-gray-900">Prompt:</p>
-                    <p className="text-gray-700">"Coffee shop aesthetic, minimalist interior, morning light"</p>
-                  </div>
-                  <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-8 text-center">
-                    <div className="w-full h-40 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-6xl mb-2">☕</div>
-                        <p className="text-blue-700 font-semibold">Premium AI Generated Image</p>
-                        <p className="text-blue-600 text-sm">Coffee shop aesthetic dalam 5 detik</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                <CardTitle className="flex items-center gap-2">
-                  <span>📈</span> Strategi Marketing Harian
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <p className="font-semibold text-blue-900 mb-3">📅 Marketing Plan - Hari Ini:</p>
-                    <div className="space-y-2 text-blue-800">
-                      <div className="flex items-start gap-2">
-                        <span className="text-blue-600">▸</span>
-                        <div>
-                          <strong>09:00</strong> - Post product showcase dengan caption storytelling
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-blue-600">▸</span>
-                        <div>
-                          <strong>12:00</strong> - Update engagement content
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-blue-600">▸</span>
-                        <div>
-                          <strong>15:00</strong> - Instagram Stories: behind the scene
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-blue-600">▸</span>
-                        <div>
-                          <strong>18:00</strong> - Facebook Live Q&A session
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-blue-600">▸</span>
-                        <div>
-                          <strong>20:00</strong> - Analyze daily performance & plan tomorrow
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIAL SECTION */}
-      <section id="testimoni" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Apa Kata Mereka
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Ribuan UMKM sudah transformasi bisnisnya dengan Asisten UMKM
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="relative">
-              <CardContent className="p-8">
-                <div className="absolute top-4 right-4 text-4xl">❤️</div>
-                <div className="flex items-center gap-1 mb-4">
-                  {[1,2,3,4,5].map(i => <span key={i} className="text-yellow-500">⭐</span>)}
-                </div>
-                <p className="text-gray-700 mb-6 italic">
-                  "Dulu saya capek setiap hari harus mikir mau posting apa. Sekarang tinggal klik-klik,
-                  konten ready sebulan penuh! Penjualan naik 300% dalam 2 bulan."
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full"></div>
-                  <div>
-                    <p className="font-semibold text-gray-900">Siti Nurhaliza</p>
-                    <p className="text-sm text-gray-600">Owner HijabStyle</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="relative">
-              <CardContent className="p-8">
-                <div className="absolute top-4 right-4 text-4xl">🚀</div>
-                <div className="flex items-center gap-1 mb-4">
-                  {[1,2,3,4,5].map(i => <span key={i} className="text-yellow-500">⭐</span>)}
-                </div>
-                <p className="text-gray-700 mb-6 italic">
-                  "Chat auto-reply nya mantap! Customer jadi puas karena cepat direspon.
-                  Rating toko saya dari 4.2 jadi 4.8, orderan makin banyak."
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full"></div>
-                  <div>
-                    <p className="font-semibold text-gray-900">Budi Santoso</p>
-                    <p className="text-sm text-gray-600">Owner TokoKu Elektronik</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="relative">
-              <CardContent className="p-8">
-                <div className="absolute top-4 right-4 text-4xl">💎</div>
-                <div className="flex items-center gap-1 mb-4">
-                  {[1,2,3,4,5].map(i => <span key={i} className="text-yellow-500">⭐</span>)}
-                </div>
-                <p className="text-gray-700 mb-6 italic">
-                  "Hemat banget! Dulu harus bayar admin sosmed 2jt/bulan, sekarang dengan Asisten UMKM
-                  cuma 300rb/bulan. Hasilnya jauh lebih bagus lagi!"
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full"></div>
-                  <div>
-                    <p className="font-semibold text-gray-900">Maya Putri</p>
-                    <p className="text-sm text-gray-600">Owner Bakery Artisan</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING SECTION */}
-      <section id="harga" className="py-20 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-blue-100 text-blue-800">HARGA TERJANGKAU</Badge>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Satu Paket Lengkap untuk Semua Kebutuhan
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Dapatkan semua fitur premium Asisten UMKM dengan harga yang terjangkau
-            </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <Card className="relative hover:shadow-2xl transition-shadow border-2 border-blue-500">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-1">
-                  PAKET LENGKAP ⭐
-                </Badge>
+          <div className="flex-1 relative w-full group mt-6 lg:mt-0">
+            <div className="absolute -top-10 -right-10 w-48 h-48 md:w-64 md:h-64 bg-secondary-fixed/30 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-48 h-48 md:w-64 md:h-64 bg-tertiary-fixed/30 rounded-full blur-3xl"></div>
+            {/* Floating Dashboard Mockup */}
+            <div className="glass-card p-3 md:p-4 rounded-2xl shadow-2xl border border-white/50 relative overflow-hidden transition-transform duration-500 hover:rotate-1">
+              <div className="flex items-center gap-2 mb-3 md:mb-4 border-b border-outline-variant/15 pb-3 md:pb-4">
+                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-error"></div>
+                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-secondary-fixed"></div>
+                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-secondary"></div>
+                <div className="ml-2 md:ml-4 h-3 md:h-4 w-24 md:w-32 bg-surface-container-high rounded-full"></div>
               </div>
-              <CardContent className="p-8">
-                <div className="text-center mb-8">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-4">Asisten UMKM Premium</h3>
-                  <p className="text-gray-600 text-lg">Akses semua fitur tanpa batas</p>
-                </div>
-
-                {/* Billing Toggle */}
-                <div className="flex justify-center mb-8">
-                  <div className="bg-gray-100 rounded-lg p-1 inline-flex">
-                    <button
-                      className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${
-                        !isYearly
-                          ? 'text-white bg-blue-600'
-                          : 'text-gray-700 hover:text-gray-900'
-                      }`}
-                      onClick={() => setIsYearly(false)}
-                    >
-                      Bulanan
-                    </button>
-                    <button
-                      className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${
-                        isYearly
-                          ? 'text-white bg-blue-600'
-                          : 'text-gray-700 hover:text-gray-900'
-                      }`}
-                      onClick={() => setIsYearly(true)}
-                    >
-                      Tahunan <span className="text-green-600 font-bold">(Hemat 20%)</span>
-                    </button>
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex gap-3 md:gap-4">
+                  <div className="w-1/3 aspect-square bg-secondary-container/10 rounded-xl flex items-center justify-center text-secondary">
+                    <Sparkles className="w-8 h-8 md:w-9 md:h-9" />
+                  </div>
+                  <div className="flex-1 space-y-1.5 md:space-y-2">
+                    <div className="h-3 md:h-4 bg-surface-container-high rounded-full w-full"></div>
+                    <div className="h-3 md:h-4 bg-surface-container-high rounded-full w-5/6"></div>
+                    <div className="h-3 md:h-4 bg-surface-container-high rounded-full w-4/6"></div>
                   </div>
                 </div>
-
-                {/* Price Display */}
-                <div className="text-center mb-8">
-                  <div className="text-5xl font-bold text-gray-900 mb-2">
-                    {isYearly ? 'Rp70.400' : 'Rp88.000'}
-                    <span className="text-xl text-gray-600 font-normal">/bulan</span>
+                <div className="bg-primary-container p-3 md:p-4 rounded-xl">
+                  <div className="flex items-center gap-2 md:gap-3 mb-2">
+                    <Bot className="w-4 h-4 md:w-5 md:h-5 text-secondary-fixed-dim" />
+                    <span className="text-white text-[10px] md:text-xs font-bold uppercase tracking-widest">AI Generating...</span>
                   </div>
-                  <p className="text-gray-600">
-                    {isYearly
-                      ? 'Rp844.800/tahun (dari Rp1.056.000)'
-                      : 'Rp70.400/bulan jika bayar tahunan'
-                    }
-                  </p>
-                  {isYearly && (
-                    <Badge className="mt-2 bg-green-100 text-green-800">
-                      Hemat Rp211.200/tahun
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Features */}
-                <ul className="space-y-4 mb-8">
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">Unlimited konten generation</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">Unlimited gambar AI generation</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">Unlimited caption & hashtag templates</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">Analytics dashboard lengkap</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">Strategi marketing personal</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">Ide bisnis & riset kompetitor</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">Laporan bisnis real-time</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm">✓</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">Support 24/7</span>
-                  </li>
-                </ul>
-
-                <div className="space-y-4">
-                  <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-lg py-4 font-semibold">
-                    Coba Gratis 7 Hari
-                  </Button>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">
-                      <strong>✨ Tidak perlu kartu kredit</strong>
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Cancel kapan saja • Full refund 30 hari
-                    </p>
+                  <div className="space-y-1">
+                    <div className="h-1 bg-secondary rounded-full w-full animate-pulse"></div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                <img className="rounded-xl w-full h-32 md:h-48 object-cover shadow-inner" alt="close-up of digital interface with glowing blue particles and data visualizations in a dark premium office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN8EdBKjgLUQ8ehm4osjpeSW6Z5ifCJtuPkZmPEcx1UzkJiahzynwrLtXEY22aH4tLAxCzjP4qbEMavs3Gkv0E8u3LLrfUsIV_17vAAB0vzSRpRFswCJDelt1xLNrASetn0jzNng-dG-z6q-qLPjR-H0zlBmHMwPz8RZMTYBVxEWJ1FyhgO4TYsBhCnVxUszbj1w42k5AUfSE1-XKtcHSQ2Pq1KCjADsj7iGzRBMLwzAUqMIX9O3JSbDkbFA7p81YaFOA_KDPNnEc" />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FINAL CTA SECTION */}
-      <section className="py-24 bg-gradient-to-r from-blue-600 to-blue-800 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Badge className="mb-6 bg-white text-blue-600">LIMITED OFFER</Badge>
-          <h2 className="text-4xl lg:text-6xl font-bold mb-8">
-            Ubah Bisnis Anda Hari Ini
-          </h2>
-          <p className="text-xl lg:text-2xl mb-12 text-blue-100 max-w-3xl mx-auto">
-            Asisten UMKM siap membantu 24/7 untuk tingkatkan penjualan, hemat waktu,
-            dan bawa bisnis Anda ke level selanjutnya.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-            <Button size="lg" className="bg-white hover:bg-blue-50 text-blue-600 text-xl px-12 py-6 rounded-2xl font-bold text-lg">
-              Coba Gratis Sekarang →
-            </Button>
-            <Button variant="outline" size="lg" className="bg-white/10 hover:bg-white/20 text-white border-white text-xl px-12 py-6 rounded-2xl font-bold text-lg">
-              Jadwalkan Demo
-            </Button>
+      {/* Pain Points */}
+      <section id="solusi" className="py-16 md:py-24 bg-surface-container-low">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="mb-12 md:mb-16 text-center max-w-3xl mx-auto shrink-0">
+            <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-primary mb-3 md:mb-4 tracking-tight">Solusi untuk Kendala Anda</h2>
+            <p className="text-on-surface-variant text-base md:text-lg">Hapus hambatan yang menghalangi pertumbuhan bisnis Anda dengan bantuan asisten digital pintar.</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="flex items-center justify-center gap-3">
-              <span className="text-3xl">🚀</span>
-              <span className="font-semibold">Setup 5 Menit</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 group shrink-0">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-secondary-fixed rounded-2xl flex items-center justify-center mb-5 md:mb-6 text-secondary transition-colors group-hover:bg-secondary group-hover:text-white">
+                <FileEdit className="w-6 h-6 md:w-7 md:h-7" />
+              </div>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 plus-jakarta-sans">Sulit Bikin Konten</h3>
+              <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">Jangan biarkan kebuntuan kreatif menghambat media sosial Anda. AI kami membuat tulisan dan visual memukau dalam sekejap.</p>
             </div>
-            <div className="flex items-center justify-center gap-3">
-              <span className="text-3xl">💳</span>
-              <span className="font-semibold">Tanpa Kartu Kredit</span>
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 group shrink-0">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-secondary-fixed rounded-2xl flex items-center justify-center mb-5 md:mb-6 text-secondary transition-colors group-hover:bg-secondary group-hover:text-white">
+                <Megaphone className="w-6 h-6 md:w-7 md:h-7" />
+              </div>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 plus-jakarta-sans">Marketing Manual</h3>
+              <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">Habis waktu untuk posting satu per satu? Automasi kampanye marketing Anda ke berbagai channel secara terintegrasi.</p>
             </div>
-            <div className="flex items-center justify-center gap-3">
-              <span className="text-3xl">🏆</span>
-              <span className="font-semibold">Garansi 30 Hari</span>
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 group shrink-0">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-secondary-fixed rounded-2xl flex items-center justify-center mb-5 md:mb-6 text-secondary transition-colors group-hover:bg-secondary group-hover:text-white">
+                <LineChart className="w-6 h-6 md:w-7 md:h-7" />
+              </div>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 plus-jakarta-sans">Data Tercecer</h3>
+              <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">Kelola semua performa bisnis dalam satu dashboard elegan. Pahami apa yang laku dan apa yang perlu ditingkatkan.</p>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Decorative elements */}
-        <div className="absolute top-10 right-20 w-32 h-32 bg-blue-400 rounded-full opacity-20 blur-2xl"></div>
-        <div className="absolute bottom-10 left-20 w-40 h-40 bg-blue-300 rounded-full opacity-20 blur-2xl"></div>
+      {/* Features Grid */}
+      <section id="fitur" className="py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 md:mb-16 gap-4">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-primary mb-3 md:mb-4 tracking-tight">Fitur Cerdas untuk Anda</h2>
+              <p className="text-on-surface-variant text-base md:text-lg">Teknologi mutakhir yang dirancang khusus untuk kemudahan operasional UMKM.</p>
+            </div>
+            <div className="pb-2 hidden md:block">
+              <a className="text-secondary font-bold flex items-center gap-2 group" href="#">
+                Lihat Semua Fitur
+                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </a>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+            <div className="lg:col-span-8 bg-surface-container-low rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-10 overflow-hidden relative group">
+              <div className="flex-1">
+                <span className="text-secondary font-bold uppercase tracking-widest text-xs mb-3 md:mb-4 block">Visual Magic</span>
+                <h3 className="text-2xl md:text-3xl plus-jakarta-sans font-extrabold mb-3 md:mb-4">AI Image Generation</h3>
+                <p className="text-on-surface-variant text-sm md:text-base mb-6 md:mb-8 leading-relaxed">Tulis ide Anda, biarkan AI kami menciptakan foto produk atau ilustrasi promosi berkualitas studio secara instan.</p>
+                <button className="bg-white text-primary px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-bold shadow-sm transition-all hover:shadow-lg text-sm md:text-base">Mulai Desain</button>
+              </div>
+              <div className="flex-1 relative w-full">
+                <div className="grid grid-cols-2 gap-2 md:gap-3">
+                  <img className="rounded-xl aspect-square object-cover shadow-lg transition-transform group-hover:scale-105" alt="minimalist aesthetic product photography of a premium watch on a light grey textured surface with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAg8DhcDICljHdFIehBcAqLhjXlbpBfCTwtFWkZPfEJfOZzW3PWZl4ErSE2M1catnTnaEPjYd_3ixdgI_qH-MYAS6ZEw3Y2V0_vbStHFDn9vBwrGkAJlEr2JiO9mUcoViNIsEDWPFxwVvyXIoAALJlAJRJJWoz13Apnak5fntT9DudeeR8hJArqMCToUoGCnXiMNid5Oqn-b1yy7tMZxh_DVegEOk-ocUxzOM1HGC6T5lo7cw_Dzf1wdYKOwtbavwun0A7zFcVVepw" />
+                  <img className="rounded-xl aspect-square object-cover translate-y-3 md:translate-y-4 shadow-lg transition-transform group-hover:scale-105" alt="sleek modern headphones on a wooden table with warm ambient backlighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4PAC0dzOhWKpIcSJqW9ANRyGkSkz9wUKWNg-AvlYo127QxrYd9eVvNj4oexucXs6XXOJe1fXuqJmDRTeyyc20xj3zNUvlWXc8F2lBGjl6X_d9Gr1O9NnDZ_SD0TrIZYRuukFWd3g-nPF49riFjmmCNji8-TuAQPeiEzQ5qZoMrkaTvbTNrsD0d5sw3ElJDPa7ZFCBhDr7_c7aMCK8k_CMwgWy3hl4AAhKxoh5OLRuvDlMM1LpmREBbxqYj3t6FYucBZc5fkA728I" />
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-4 bg-primary text-white rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col justify-between group">
+              <div>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/10 rounded-xl flex items-center justify-center mb-5 md:mb-6">
+                  <BarChart className="w-5 h-5 md:w-6 md:h-6 text-secondary-fixed" />
+                </div>
+                <h3 className="text-xl md:text-2xl plus-jakarta-sans font-bold mb-3 md:mb-4">Automated Marketing</h3>
+                <p className="text-on-primary-container text-sm md:text-base leading-relaxed">Jadwalkan kampanye iklan dan email marketing secara otomatis berdasarkan perilaku konsumen.</p>
+              </div>
+              <div className="mt-6 md:mt-8 flex justify-center">
+                <div className="bg-white/5 p-3 md:p-4 rounded-xl w-full border border-white/10">
+                  <div className="flex items-end gap-1.5 md:gap-2 h-16 md:h-20">
+                    <div className="flex-1 bg-secondary rounded-t-sm h-1/2"></div>
+                    <div className="flex-1 bg-secondary rounded-t-sm h-3/4"></div>
+                    <div className="flex-1 bg-white rounded-t-sm h-full"></div>
+                    <div className="flex-1 bg-secondary rounded-t-sm h-2/3"></div>
+                    <div className="flex-1 bg-secondary rounded-t-sm h-4/5"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-4 bg-secondary-container text-on-secondary-container rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col justify-between">
+              <div>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-xl flex items-center justify-center mb-5 md:mb-6">
+                  <PlayCircle className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </div>
+                <h3 className="text-xl md:text-2xl plus-jakarta-sans font-bold mb-3 md:mb-4">Auto-Captions</h3>
+                <p className="opacity-80 text-sm md:text-base leading-relaxed">Buat teks menarik untuk video Reels atau TikTok Anda dalam hitungan detik tanpa pusing mencari hashtag.</p>
+              </div>
+              <div className="mt-6 md:mt-8">
+                <div className="bg-white/10 p-3 rounded-lg flex items-center gap-3">
+                  <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/20"></div>
+                  <div className="h-1.5 md:h-2 bg-white/30 rounded-full w-1/2"></div>
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-8 bg-surface-container-low rounded-3xl p-6 sm:p-8 md:p-10 overflow-hidden relative">
+              <div className="flex flex-col md:flex-row items-center gap-8 md:gap-10">
+                <div className="flex-1 order-2 md:order-1 w-full relative z-10">
+                  <div className="bg-surface-container-lowest p-5 md:p-6 rounded-2xl shadow-xl">
+                    <div className="flex items-center gap-3 mb-3 md:mb-4">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200"></div>
+                      <div className="space-y-1">
+                        <div className="h-1.5 md:h-2 w-16 md:w-20 bg-slate-200 rounded-full"></div>
+                        <div className="h-1.5 md:h-2 w-10 md:w-12 bg-slate-100 rounded-full"></div>
+                      </div>
+                    </div>
+                    <p className="text-xs md:text-sm italic text-on-surface-variant border-l-4 border-secondary pl-3 md:pl-4">"Penjualan saya naik 300% sejak pakai Asisten UMKM untuk kelola chat customer!"</p>
+                  </div>
+                </div>
+                <div className="flex-1 order-1 md:order-2">
+                  <h3 className="text-2xl md:text-3xl plus-jakarta-sans font-extrabold mb-3 md:mb-4">Smart CRM integration</h3>
+                  <p className="text-on-surface-variant text-sm md:text-base leading-relaxed md:mb-6">Satukan semua percakapan dari WhatsApp, DM, dan e-commerce dalam satu pintu dengan asisten balasan otomatis.</p>
+                </div>
+              </div>
+            </div>
+            {/* Mobile-only Lihat Semua Fitur button */}
+            <div className="md:hidden flex justify-center mt-4">
+              <button className="text-secondary font-bold flex items-center gap-2 group border border-secondary px-6 py-2.5 rounded-xl">
+                Semua Fitur KAMI
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works / Demo */}
+      <section id="demo" className="py-16 md:py-24 bg-primary text-white">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="mb-10 md:mb-16 text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold mb-3 md:mb-4 tracking-tight">Lihat AI Beraksi</h2>
+            <p className="text-on-primary-container text-base md:text-lg">Hanya butuh satu prompt sederhana untuk mendapatkan hasil profesional.</p>
+          </div>
+          <div className="flex flex-col lg:flex-row gap-8 md:gap-12 items-center">
+            <div className="flex-1 w-full">
+              <div className="bg-primary-container p-6 md:p-8 rounded-3xl border border-white/5">
+                <label className="block text-xs font-bold uppercase tracking-widest text-secondary-fixed-dim mb-3 md:mb-4">Tulis Perintah Anda</label>
+                <div className="relative">
+                  <textarea className="w-full bg-primary/30 border-outline-variant/15 rounded-2xl p-4 md:p-6 text-base md:text-lg focus:ring-secondary focus:border-secondary transition-all resize-none min-h-[150px] md:min-h-[200px]" placeholder="Buat caption Instagram untuk sepatu kulit handmade baru kami yang bergaya klasik..." defaultValue="Buat caption Instagram untuk sepatu kulit handmade baru kami yang bergaya klasik..."></textarea>
+                  <button className="absolute bottom-3 right-3 md:bottom-4 md:right-4 bg-secondary text-white p-2.5 md:p-3 rounded-xl shadow-lg transition-transform active:scale-90">
+                    <Send className="w-4 h-4 md:w-5 md:h-5" />
+                  </button>
+                </div>
+                <div className="mt-4 md:mt-6 flex flex-wrap gap-2">
+                  <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] md:text-xs text-white/60">#FashionSustain</span>
+                  <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] md:text-xs text-white/60">#LocalBrandIndo</span>
+                  <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] md:text-xs text-white/60">#HandmadeQuality</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex-1 w-full">
+              <div className="bg-surface-container-lowest text-on-surface p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 md:p-4 bg-secondary-container text-on-secondary-container rounded-bl-2xl font-bold text-[10px] md:text-xs uppercase tracking-widest">Post Preview</div>
+                <div className="flex items-center gap-3 mb-5 md:mb-6">
+                  <img className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover" alt="professional portrait of a young entrepreneur in a modern studio environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtlrz6XyVGZ7GAGJUf3xILFPt4wWHTH-nrEO_2zEIaTIffC4N0xIzu6iOXvkkOMetupSg_2coDpitmwpeCqxSKa7cvavyC54-BT9TabuHEAPhkyWWuyIiHPiz_kQyZNhRedJ493tsxNBIfSb9xkdSTqvmLotKfDqqHV693dpBeivbNy2rpi5R43OiIqiBQ2-8fIyA8phZgXkcP6EKPwzttfXT9Lw4lGiVgoeRwVyg4u-29f2E441pIS-_wfEcvUPpht4rzA22zrNA" />
+                  <div>
+                    <p className="font-bold text-sm">Langkah Lokal</p>
+                    <p className="text-[10px] md:text-xs text-on-surface-variant">Sponsored</p>
+                  </div>
+                </div>
+                <div className="space-y-4 mb-5 md:mb-6">
+                  <div className="aspect-[4/5] bg-slate-100 rounded-xl overflow-hidden w-full max-w-xs mx-auto md:max-w-full">
+                    <img className="w-full h-full object-cover" alt="close-up of premium brown leather classic shoes on a dark rustic wooden background with atmospheric lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC45gY2J75_W5ctZ2VpEnEXUsZXQxXB7im2tqOKHmfwdgToV781dDA-WDp1OXSN_HcClu0PC6-wtfoc2Nna9_yThb4T3kZ0btyywnf06shIeYDNXAGlKvUh6RYfi1BnVcuGookeYcX6I93SAggvn-k-UTNNRF20dBNqJ_jnkRF9Ub9RPb9WaWjyo2brAdZvPd09gFIX-yA4VBWZI2pcp2ssjRmxMCaLwB0X3JT-rosAMldJRjqZRftDhkORawQ1eyHIgXyExDDsPwY" />
+                  </div>
+                </div>
+                <div className="space-y-1.5 md:space-y-2">
+                  <p className="text-xs md:text-sm font-bold">Langkah Lokal <span className="font-normal">Menghargai tradisi, melangkah ke masa depan. ✨</span></p>
+                  <p className="text-xs md:text-sm">Sepatu kulit handmade terbaru kami telah hadir. Dibuat dengan cinta oleh pengrajin lokal untuk Anda yang menghargai kualitas klasik yang tak lekang oleh waktu.</p>
+                  <p className="text-xs md:text-sm text-secondary font-medium">#ClassicVibe #LangkahLokal #LeatherGoods</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Table */}
+      <section id="harga" className="py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-primary mb-3 md:mb-4 tracking-tight">Pilih Paket Anda</h2>
+          </div>
+          <div className="flex flex-col lg:flex-row flex-wrap justify-center gap-6 md:gap-8 items-stretch">
+            {packages.map((pkg) => {
+              const features = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : (pkg.features as string[])
+              const isPopular = pkg.price > 0 // Simple logic: paid packages are highlighted
+
+              if (isPopular) {
+                return (
+                  <div key={pkg.id} className="bg-primary text-white p-8 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative transition-transform hover:scale-[1.03] z-10 w-full lg:w-[350px] flex flex-col">
+                    <div className="absolute -top-3 md:-top-4 left-1/2 -translate-x-1/2 bg-secondary text-white px-5 py-1 md:px-6 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest">Populer</div>
+                    <h3 className="text-xl md:text-2xl font-bold mb-1.5 md:mb-2">{pkg.name}</h3>
+                    <p className="text-on-primary-container text-xs md:text-sm mb-5 md:mb-6 flex-1">{pkg.description}</p>
+                    <div className="flex items-baseline gap-1 mb-6 md:mb-8">
+                      <span className="text-4xl md:text-5xl font-extrabold text-white">{formatPrice(pkg.price)}</span>
+                      {pkg.price > 0 && <span className="opacity-60 text-xs md:text-sm">/bln</span>}
+                    </div>
+                    <ul className="space-y-4 md:space-y-5 mb-8 md:mb-10 text-left">
+                      {Array.isArray(features) && features.map((feature: string, idx: number) => (
+                        <li key={idx} className="flex items-center gap-3 text-xs md:text-sm">
+                          <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-secondary-fixed shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <button className="w-full py-4 md:py-5 mt-auto rounded-xl md:rounded-2xl bg-secondary text-white font-extrabold text-base md:text-lg shadow-xl shadow-secondary/20 transition-transform active:scale-95">
+                      Mulai Sekarang
+                    </button>
+                  </div>
+                )
+              }
+
+              return (
+                <div key={pkg.id} className="bg-surface-container-lowest p-8 md:p-10 rounded-3xl md:rounded-[2.5rem] border border-outline-variant/15 transition-transform hover:scale-[1.01] lg:hover:scale-[1.02] w-full lg:w-[350px] flex flex-col">
+                  <h3 className="text-lg md:text-xl font-bold mb-1.5 md:mb-2">{pkg.name}</h3>
+                  <p className="text-on-surface-variant text-xs md:text-sm mb-5 md:mb-6 flex-1">{pkg.description}</p>
+                  <div className="flex items-baseline gap-1 mb-5 md:mb-6">
+                    <span className="text-3xl md:text-4xl font-extrabold text-primary">{formatPrice(pkg.price)}</span>
+                    {pkg.price > 0 && <span className="text-on-surface-variant text-xs md:text-sm">/bln</span>}
+                  </div>
+                  <ul className="space-y-3 md:space-y-4 mb-8 md:mb-10 text-left">
+                    {Array.isArray(features) && features.map((feature: string, idx: number) => (
+                      <li key={idx} className="flex items-center gap-3 text-xs md:text-sm">
+                        <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-secondary shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="w-full py-3 md:py-4 mt-auto rounded-xl border-2 border-secondary text-secondary font-bold hover:bg-secondary hover:text-white transition-colors text-sm md:text-base">
+                    Pilih Paket
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof */}
+      <section id="testimoni" className="py-16 md:py-24 bg-surface-container-low mb-8 md:mb-12">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="text-center mb-10 md:mb-16">
+            <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-primary mb-3 md:mb-4 tracking-tight">Dipercaya oleh UMKM Indonesia</h2>
+            <p className="text-on-surface-variant text-base md:text-lg">Bergabunglah dengan 10,000+ pemilik bisnis yang telah bertransformasi.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-3xl shadow-sm border border-white">
+              <div className="flex gap-1 text-secondary mb-5 md:mb-6">
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+              </div>
+              <p className="text-on-surface text-sm md:text-base italic mb-6 md:mb-8 leading-relaxed">"Awalnya bingung mau posting apa tiap hari. Sekarang, AI Asisten UMKM yang mikirin semuanya. Jualan makin laris!"</p>
+              <div className="flex items-center gap-4">
+                <img className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover" alt="professional business portrait of a smiling woman with glasses in a bright workspace" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCupHNmiMBb0lwsqbsvKz3RD2a1k_wRXpfXoR9mQmwaNRAv230ILQkd4smNi99cTGE6temJVwAKzlOsSrd7KaxrMaM5EPgCH65pNyf5h75ah4OOg5yEbfGVTdIhNckjhxzGb-AFJUoRb2fYFFxSPfavAWBUSszm5xE7oWKP4Wrlnx6XFmUCzSkvmJFhnzBVC6NiqsUbNWTZYIS0e-2-AU5F4ZSoRy-CzVDK40JZdSXI-QLlmqJLB-Pt8hF3vHOsXjO2JQCTWBCO3RI" />
+                <div>
+                  <p className="font-bold text-sm md:text-base">Santi Wijaya</p>
+                  <p className="text-[10px] md:text-xs text-on-surface-variant">Owner Batik Solo Modern</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-3xl shadow-sm border border-white">
+              <div className="flex gap-1 text-secondary mb-5 md:mb-6">
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+              </div>
+              <p className="text-on-surface text-sm md:text-base italic mb-6 md:mb-8 leading-relaxed">"Fitur automasi ads-nya gila banget. ROI bisnis kopi saya naik 40% dalam sebulan pertama penggunaan."</p>
+              <div className="flex items-center gap-4">
+                <img className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover" alt="headshot of a confident smiling man with a beard and casual clothing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbRxQDjIRDnyYiea_W2inGF-nXgaDZJ2oRXi3svk_2ET11BZPRIrhVzrVenJ87lOoREjWPuyyJI_NI9QbAaljQBFOK6hiJYN3JCEJEyapoiRM27xp-2zZNcvUqknZ9yxFMVwTX7AVvPVAlE8uyW8wmT66oTvdJ2VAnz3RGn8fZ6zdahQqKsL0fIPj9yS89ByQuyQt6EWeQR-aSskikeBAisCevPxN0aURTs_-raX2TqQwd4Qvxp1KUHwzl4lakaY_l1t56JJ0gIS8" />
+                <div>
+                  <p className="font-bold text-sm md:text-base">Budi Pratama</p>
+                  <p className="text-[10px] md:text-xs text-on-surface-variant">Kopi Anak Bangsa</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-3xl shadow-sm border border-white">
+              <div className="flex gap-1 text-secondary mb-5 md:mb-6">
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+                <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
+              </div>
+              <p className="text-on-surface text-sm md:text-base italic mb-6 md:mb-8 leading-relaxed">"Gak perlu bayar desainer mahal lagi. AI Image-nya bantu bikin foto produk jadi estetik banget buat katalog."</p>
+              <div className="flex items-center gap-4">
+                <img className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover" alt="portrait of a cheerful woman with a colorful headscarf in a sunlit outdoor market environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM4WPY7kIcVVbm7zIieS-DZFZk_4k-M75R5tgere_pargzQAgjieEv3ygvJE1U4uYCnPWNTPsDutwih24mzoyMomICiUvek2Ja6bo1Frl48uczbov7IRJY9vtpZLIqdC5oIiKPwZK2FWFMlvEu9wB7GCFiFPHQPnsyRL701ymcvrNFNwJEz9T9K9Af-exjMMcW2OgZHneHDgAZkFn2Xd3IYDdKFVthR7AG684RuMspq2ws3DGl_kntvFWX_MVkil26WaaDkhEmE3k" />
+                <div>
+                  <p className="font-bold text-sm md:text-base">Linda Sari</p>
+                  <p className="text-[10px] md:text-xs text-on-surface-variant">Hijabers Choice</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   )
