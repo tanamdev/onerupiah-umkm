@@ -24,6 +24,12 @@ const publicRoutes = [
   '/api/auth/me'
 ]
 
+// Admin routes yang memerlukan authentication & role ADMIN/SUPER_ADMIN
+const adminRoutes = ['/admin', '/api/admin']
+
+// Public admin routes
+const publicAdminRoutes = ['/admin/login', '/api/admin/auth/login']
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -38,11 +44,48 @@ export async function middleware(request: NextRequest) {
 
   // Check if current path is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
+  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
+  const isPublicAdminRoute = publicAdminRoutes.some(route => pathname === route || pathname.startsWith(route))
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route))
 
-  // If it's a public route, allow access
-  if (isPublicRoute && !isProtectedRoute) {
+  // If it's a public route and not a protected one, allow access
+  if (isPublicAdminRoute) {
     return NextResponse.next()
+  }
+
+  if (isPublicRoute && !isProtectedRoute && !isAdminRoute) {
+    return NextResponse.next()
+  }
+
+  // For Admin routes, check authentication and role
+  if (isAdminRoute && !isPublicAdminRoute) {
+    const token = request.cookies.get('auth_token')?.value
+
+    if (!token) {
+      const loginUrl = new URL('/admin/login', request.url)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    try {
+      const { payload } = await jwtVerify(token, JWT_SECRET)
+
+      if (!payload.userId) {
+        throw new Error('Invalid token: no userId found')
+      }
+
+      // Check role for admin access
+      if (payload.role !== 'ADMIN' && payload.role !== 'SUPER_ADMIN') {
+        return NextResponse.redirect(new URL('/unauthorized', request.url))
+      }
+
+      // Token and role are valid
+      return NextResponse.next()
+    } catch (error) {
+      console.error('Middleware admin auth error:', error)
+      const response = NextResponse.redirect(new URL('/admin/login', request.url))
+      response.cookies.delete('auth_token')
+      return response
+    }
   }
 
   // For protected routes, check authentication

@@ -2,8 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { QueryClientProviderWrapper } from '@/providers/query-client-provider';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
+import { NavbarFooterWrapper } from '@/components/layout/NavbarFooterWrapper';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -89,9 +88,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <QueryClientProviderWrapper>
-          <Header />
-          <main className='flex-1'>{children}</main>
-          <Footer />
+          <NavbarFooterWrapper>
+            {children}
+          </NavbarFooterWrapper>
         </QueryClientProviderWrapper>
       </body>
     </html>
