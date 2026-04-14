@@ -50,12 +50,29 @@ class SubscriptionServiceImpl implements SubscriptionService {
         status: SubscriptionStatus.ACTIVE,
       },
       orderBy: { createdAt: 'desc' },
+      include: { package: true },
     });
 
     if (!subscription) {
       return null;
     }
 
+    // Free plan: tidak pernah expired — berlaku selamanya dengan reset kuota tiap periode
+    if (subscription.plan === SubscriptionPlan.FREE) {
+      const periodStart = subscription.usageResetAt ?? subscription.startDate;
+      const durationDays = subscription.package?.duration ?? 7;
+      const nextResetAt = new Date(periodStart.getTime() + durationDays * 24 * 60 * 60 * 1000);
+      const daysUntilReset = Math.ceil((nextResetAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+
+      return {
+        ...subscription,
+        daysLeft: Math.max(0, daysUntilReset),
+        isExpired: false, // Free tidak pernah expired
+        nextResetAt,
+      };
+    }
+
+    // Plan berbayar: cek berdasarkan endDate
     const daysLeft = Math.ceil(
       (new Date(subscription.endDate).getTime() - new Date().getTime()) /
         (1000 * 60 * 60 * 24)
@@ -117,7 +134,7 @@ class SubscriptionServiceImpl implements SubscriptionService {
         endDate.setFullYear(endDate.getFullYear() + 1);
         break;
       case SubscriptionPlan.FREE:
-        endDate.setFullYear(endDate.getFullYear() + 10); // Long expiry for free plan
+        endDate.setFullYear(endDate.getFullYear() + 100); // Free plan berlaku selamanya
         break;
       default:
         throw new Error('Invalid subscription plan');
@@ -135,6 +152,8 @@ class SubscriptionServiceImpl implements SubscriptionService {
           monthlyPrice,
           yearlyPrice,
           autoRenew: plan !== SubscriptionPlan.FREE,
+          // Reset kuota saat upgrade/downgrade
+          usageResetAt: new Date(),
         },
       });
     } else {
@@ -149,6 +168,8 @@ class SubscriptionServiceImpl implements SubscriptionService {
           monthlyPrice,
           yearlyPrice,
           autoRenew: plan !== SubscriptionPlan.FREE,
+          // Set awal periode kuota
+          usageResetAt: new Date(),
         },
       });
     }
@@ -256,6 +277,8 @@ class SubscriptionServiceImpl implements SubscriptionService {
             yearlyPrice: packageData.yearlyPrice,
             autoRenew: true,
             packageId: packageId,
+            // Reset kuota saat renewal/perpanjangan
+            usageResetAt: new Date(),
           },
         });
 
@@ -283,6 +306,8 @@ class SubscriptionServiceImpl implements SubscriptionService {
             yearlyPrice: packageData.yearlyPrice,
             autoRenew: true,
             packageId: packageId,
+            // Set awal periode kuota
+            usageResetAt: new Date(),
           },
         });
 

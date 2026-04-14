@@ -12,6 +12,10 @@ import {
   isFoodMode,
   isProductMode,
 } from '@/services/image'
+import { checkUserQuota } from '@/lib/usageQuota'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/next-auth'
 
 const API_KEY = process.env.GEMINI_API_KEY
 const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null
@@ -177,6 +181,41 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // --- Pengecekan autentikasi & kuota ---
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: 'Silakan login terlebih dahulu untuk menggunakan fitur ini.' },
+      { status: 401 }
+    )
+  }
+
+  const quota = await checkUserQuota(session.user.id)
+
+  if (!quota.canGenerateImage) {
+    const limitMsg = quota.imageLimit !== null
+      ? `Kuota generate gambar Anda sudah habis (${quota.imageUsed}/${quota.imageLimit}).`
+      : 'Kuota generate gambar Anda sudah habis.'
+
+    const resetMsg = quota.nextResetAt
+      ? ` Kuota akan direset pada ${quota.nextResetAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+      : ' Silakan upgrade paket Anda untuk mendapatkan lebih banyak kuota.'
+
+    return NextResponse.json(
+      {
+        error: limitMsg + resetMsg,
+        code: 'QUOTA_EXCEEDED',
+        quota: {
+          imageUsed: quota.imageUsed,
+          imageLimit: quota.imageLimit,
+          nextResetAt: quota.nextResetAt,
+        },
+      },
+      { status: 403 }
+    )
+  }
+  // --- Akhir pengecekan kuota ---
+
   try {
     const formData = await request.formData()
     const action = formData.get('action')
@@ -186,7 +225,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'generate') {
-      return await handleGenerateRequest(formData)
+      const result = await handleGenerateRequest(formData)
+
+      // Catat penggunaan image ke database jika berhasil
+      if (result.status === 200) {
+        await prisma.imageGeneration.create({
+          data: {
+            userId: session.user.id,
+            prompt: formData.get('config') as string || 'image',
+            status: 'COMPLETED',
+          },
+        })
+      }
+
+      return result
     }
 
     return NextResponse.json(

@@ -87,6 +87,7 @@ model Subscription {
   monthlyPrice Int
   yearlyPrice  Int?
   autoRenew    Boolean          @default(true)
+  usageResetAt DateTime?        // Tanggal terakhir kuota di-reset (untuk Free: setiap 7 hari; untuk berbayar: setiap periode)
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 

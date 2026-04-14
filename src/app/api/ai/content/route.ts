@@ -1,10 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI, Modality } from '@google/genai'
 import type {
   ContentGenerationConfig,
   GeneratedContent,
 } from '@/types/content'
 import { CONTENT_TEMPLATES } from '@/constants/contentTemplates'
+import { checkUserQuota } from '@/lib/usageQuota'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/next-auth'
 
 const API_KEY = process.env.GEMINI_API_KEY
 const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null
@@ -55,13 +59,48 @@ const extractTitle = (content: string): string | undefined => {
   return titleLine?.trim()
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   if (!ai) {
     return NextResponse.json(
       { error: 'GEMINI_API_KEY belum dikonfigurasi di server' },
       { status: 503 }
     )
   }
+
+  // --- Pengecekan autentikasi & kuota ---
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: 'Silakan login terlebih dahulu untuk menggunakan fitur ini.' },
+      { status: 401 }
+    )
+  }
+
+  const quota = await checkUserQuota(session.user.id)
+
+  if (!quota.canGenerateContent) {
+    const limitMsg = quota.contentLimit !== null
+      ? `Kuota generate konten Anda sudah habis (${quota.contentUsed}/${quota.contentLimit}).`
+      : 'Kuota generate konten Anda sudah habis.'
+
+    const resetMsg = quota.nextResetAt
+      ? ` Kuota akan direset pada ${quota.nextResetAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+      : ' Silakan upgrade paket Anda untuk mendapatkan lebih banyak kuota.'
+
+    return NextResponse.json(
+      {
+        error: limitMsg + resetMsg,
+        code: 'QUOTA_EXCEEDED',
+        quota: {
+          contentUsed: quota.contentUsed,
+          contentLimit: quota.contentLimit,
+          nextResetAt: quota.nextResetAt,
+        },
+      },
+      { status: 403 }
+    )
+  }
+  // --- Akhir pengecekan kuota ---
 
   try {
     const body = await request.json()
@@ -95,6 +134,17 @@ export async function POST(request: Request) {
       )
     }
 
+    // Catat penggunaan ke database
+    await prisma.contentGeneration.create({
+      data: {
+        userId: session.user.id,
+        type: 'CAPTION',
+        prompt: config.product || 'konten',
+        generatedContent: generatedText,
+        status: 'COMPLETED',
+      },
+    })
+
     const generatedContent: GeneratedContent = {
       id: Date.now().toString(),
       content: generatedText,
@@ -123,3 +173,4 @@ export async function POST(request: Request) {
     )
   }
 }
+

@@ -12,10 +12,25 @@ export interface SubscriptionData {
   yearlyPrice?: number
   daysLeft: number
   isExpired: boolean
+  nextResetAt?: Date | null
+}
+
+export interface QuotaData {
+  contentUsed: number
+  imageUsed: number
+  contentLimit: number | null
+  imageLimit: number | null
+  canGenerateContent: boolean
+  canGenerateImage: boolean
+  resetAt: Date | null
+  nextResetAt: Date | null
+  periodDays: number
+  plan: string | null
 }
 
 interface SubscriptionContextType {
   subscription: SubscriptionData | null
+  quota: QuotaData | null
   isLoading: boolean
   isTrial: boolean
   isPremium: boolean
@@ -41,14 +56,24 @@ interface SubscriptionProviderProps {
 
 export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ children }) => {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
+  const [quota, setQuota] = useState<QuotaData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchSubscription = async () => {
     try {
-      const response = await fetch('/api/subscription')
-      if (response.ok) {
-        const data = await response.json()
+      const [subResponse, quotaResponse] = await Promise.all([
+        fetch('/api/subscription'),
+        fetch('/api/subscription/quota'),
+      ])
+
+      if (subResponse.ok) {
+        const data = await subResponse.json()
         setSubscription(data.subscription)
+      }
+
+      if (quotaResponse.ok) {
+        const data = await quotaResponse.json()
+        setQuota(data.quota)
       }
     } catch (error) {
       console.error('Failed to fetch subscription:', error)
@@ -70,10 +95,12 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
   const isPremium = subscription?.plan === 'PREMIUM_MONTHLY' || subscription?.plan === 'PREMIUM_YEARLY'
   const isFree = subscription?.plan === 'FREE'
   const daysLeft = subscription?.daysLeft || 0
+  // Free plan: selalu bisa generate selama kuota tersedia (quota check dilakukan di API)
   const canGenerate = subscription?.status === 'ACTIVE' && !subscription?.isExpired
 
   const value: SubscriptionContextType = {
     subscription,
+    quota,
     isLoading,
     isTrial,
     isPremium,

@@ -30,7 +30,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="bg-surface inter text-on-surface selection:bg-secondary-fixed pb-12 md:pb-20">
+    <div className="bg-surface inter text-on-surface selection:bg-purple-100 pb-12 md:pb-20">
       {/* Spacer for fixed header */}
       <div className="h-16 md:h-20"></div>
 
@@ -38,36 +38,36 @@ export default async function Home() {
       <section className="relative pt-20 md:pt-32 pb-16 md:pb-20 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex flex-col lg:flex-row items-center gap-10 md:gap-12">
           <div className="flex-1 text-center lg:text-left z-10">
-            <span className="bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider mb-6 inline-block">Masa Depan UMKM Indonesia</span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl plus-jakarta-sans font-extrabold text-primary leading-tight mb-4 md:mb-6 tracking-tight">
-              Asisten UMKM: Wujudkan <span className="text-secondary">Bisnis Impian</span> Anda
+            <span className="bg-purple-100 text-purple-800 px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider mb-6 inline-block">Masa Depan UMKM Indonesia</span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl plus-jakarta-sans font-extrabold text-blue-600 leading-tight mb-4 md:mb-6 tracking-tight">
+              Asisten UMKM: Wujudkan <span className="text-purple-600">Bisnis Impian</span> Anda
             </h1>
             <p className="text-base md:text-lg text-on-surface-variant mb-8 md:mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               Tingkatkan skala bisnis Anda dengan kecerdasan buatan. Buat konten, kelola marketing, dan optimalkan operasional hanya dalam hitungan detik.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <button className="bg-gradient-primary text-on-primary px-6 py-3.5 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg shadow-xl shadow-primary/10 transition-transform active:scale-95 w-full sm:w-auto">
+              <button className="bg-blue-600 text-white px-6 py-3.5 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg shadow-xl shadow-blue-600/20 transition-transform active:scale-95 w-full sm:w-auto">
                 Coba Gratis Sekarang
               </button>
-              <button className="bg-surface-container-highest text-primary px-6 py-3.5 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg transition-transform active:scale-95 w-full sm:w-auto">
+              <button className="bg-surface-container-highest text-blue-600 px-6 py-3.5 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg transition-transform active:scale-95 w-full sm:w-auto">
                 Lihat Demo
               </button>
             </div>
           </div>
           <div className="flex-1 relative w-full group mt-6 lg:mt-0">
-            <div className="absolute -top-10 -right-10 w-48 h-48 md:w-64 md:h-64 bg-secondary-fixed/30 rounded-full blur-3xl"></div>
+            <div className="absolute -top-10 -right-10 w-48 h-48 md:w-64 md:h-64 bg-purple-100/30 rounded-full blur-3xl"></div>
             <div className="absolute -bottom-10 -left-10 w-48 h-48 md:w-64 md:h-64 bg-tertiary-fixed/30 rounded-full blur-3xl"></div>
             {/* Floating Dashboard Mockup */}
             <div className="glass-card p-3 md:p-4 rounded-2xl shadow-2xl border border-white/50 relative overflow-hidden transition-transform duration-500 hover:rotate-1">
               <div className="flex items-center gap-2 mb-3 md:mb-4 border-b border-outline-variant/15 pb-3 md:pb-4">
                 <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-error"></div>
-                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-secondary-fixed"></div>
-                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-secondary"></div>
+                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-purple-100"></div>
+                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-purple-600"></div>
                 <div className="ml-2 md:ml-4 h-3 md:h-4 w-24 md:w-32 bg-surface-container-high rounded-full"></div>
               </div>
               <div className="space-y-3 md:space-y-4">
                 <div className="flex gap-3 md:gap-4">
-                  <div className="w-1/3 aspect-square bg-secondary-container/10 rounded-xl flex items-center justify-center text-secondary">
+                  <div className="w-1/3 aspect-square bg-purple-800/10 rounded-xl flex items-center justify-center text-purple-600">
                     <Sparkles className="w-8 h-8 md:w-9 md:h-9" />
                   </div>
                   <div className="flex-1 space-y-1.5 md:space-y-2">
@@ -76,13 +76,13 @@ export default async function Home() {
                     <div className="h-3 md:h-4 bg-surface-container-high rounded-full w-4/6"></div>
                   </div>
                 </div>
-                <div className="bg-primary-container p-3 md:p-4 rounded-xl">
+                <div className="bg-blue-800 p-3 md:p-4 rounded-xl">
                   <div className="flex items-center gap-2 md:gap-3 mb-2">
-                    <Bot className="w-4 h-4 md:w-5 md:h-5 text-secondary-fixed-dim" />
+                    <Bot className="w-4 h-4 md:w-5 md:h-5 text-purple-300" />
                     <span className="text-white text-[10px] md:text-xs font-bold uppercase tracking-widest">AI Generating...</span>
                   </div>
                   <div className="space-y-1">
-                    <div className="h-1 bg-secondary rounded-full w-full animate-pulse"></div>
+                    <div className="h-1 bg-purple-600 rounded-full w-full animate-pulse"></div>
                   </div>
                 </div>
                 <img className="rounded-xl w-full h-32 md:h-48 object-cover shadow-inner" alt="close-up of digital interface with glowing blue particles and data visualizations in a dark premium office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN8EdBKjgLUQ8ehm4osjpeSW6Z5ifCJtuPkZmPEcx1UzkJiahzynwrLtXEY22aH4tLAxCzjP4qbEMavs3Gkv0E8u3LLrfUsIV_17vAAB0vzSRpRFswCJDelt1xLNrASetn0jzNng-dG-z6q-qLPjR-H0zlBmHMwPz8RZMTYBVxEWJ1FyhgO4TYsBhCnVxUszbj1w42k5AUfSE1-XKtcHSQ2Pq1KCjADsj7iGzRBMLwzAUqMIX9O3JSbDkbFA7p81YaFOA_KDPNnEc" />
@@ -96,26 +96,26 @@ export default async function Home() {
       <section id="solusi" className="py-16 md:py-24 bg-surface-container-low">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="mb-12 md:mb-16 text-center max-w-3xl mx-auto shrink-0">
-            <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-primary mb-3 md:mb-4 tracking-tight">Solusi untuk Kendala Anda</h2>
+            <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-blue-600 mb-3 md:mb-4 tracking-tight">Solusi untuk Kendala Anda</h2>
             <p className="text-on-surface-variant text-base md:text-lg">Hapus hambatan yang menghalangi pertumbuhan bisnis Anda dengan bantuan asisten digital pintar.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 group shrink-0">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-secondary-fixed rounded-2xl flex items-center justify-center mb-5 md:mb-6 text-secondary transition-colors group-hover:bg-secondary group-hover:text-white">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-5 md:mb-6 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
                 <FileEdit className="w-6 h-6 md:w-7 md:h-7" />
               </div>
               <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 plus-jakarta-sans">Sulit Bikin Konten</h3>
               <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">Jangan biarkan kebuntuan kreatif menghambat media sosial Anda. AI kami membuat tulisan dan visual memukau dalam sekejap.</p>
             </div>
             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 group shrink-0">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-secondary-fixed rounded-2xl flex items-center justify-center mb-5 md:mb-6 text-secondary transition-colors group-hover:bg-secondary group-hover:text-white">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-5 md:mb-6 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
                 <Megaphone className="w-6 h-6 md:w-7 md:h-7" />
               </div>
               <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 plus-jakarta-sans">Marketing Manual</h3>
               <p className="text-on-surface-variant text-sm md:text-base leading-relaxed">Habis waktu untuk posting satu per satu? Automasi kampanye marketing Anda ke berbagai channel secara terintegrasi.</p>
             </div>
             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 group shrink-0">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-secondary-fixed rounded-2xl flex items-center justify-center mb-5 md:mb-6 text-secondary transition-colors group-hover:bg-secondary group-hover:text-white">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-5 md:mb-6 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
                 <LineChart className="w-6 h-6 md:w-7 md:h-7" />
               </div>
               <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 plus-jakarta-sans">Data Tercecer</h3>
@@ -130,11 +130,11 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 md:mb-16 gap-4">
             <div className="max-w-2xl">
-              <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-primary mb-3 md:mb-4 tracking-tight">Fitur Cerdas untuk Anda</h2>
+              <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-blue-600 mb-3 md:mb-4 tracking-tight">Fitur Cerdas untuk Anda</h2>
               <p className="text-on-surface-variant text-base md:text-lg">Teknologi mutakhir yang dirancang khusus untuk kemudahan operasional UMKM.</p>
             </div>
             <div className="pb-2 hidden md:block">
-              <a className="text-secondary font-bold flex items-center gap-2 group" href="#">
+              <a className="text-purple-600 font-bold flex items-center gap-2 group" href="#">
                 Lihat Semua Fitur
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </a>
@@ -143,10 +143,10 @@ export default async function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
             <div className="lg:col-span-8 bg-surface-container-low rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-10 overflow-hidden relative group">
               <div className="flex-1">
-                <span className="text-secondary font-bold uppercase tracking-widest text-xs mb-3 md:mb-4 block">Visual Magic</span>
+                <span className="text-purple-600 font-bold uppercase tracking-widest text-xs mb-3 md:mb-4 block">Visual Magic</span>
                 <h3 className="text-2xl md:text-3xl plus-jakarta-sans font-extrabold mb-3 md:mb-4">AI Image Generation</h3>
                 <p className="text-on-surface-variant text-sm md:text-base mb-6 md:mb-8 leading-relaxed">Tulis ide Anda, biarkan AI kami menciptakan foto produk atau ilustrasi promosi berkualitas studio secara instan.</p>
-                <button className="bg-white text-primary px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-bold shadow-sm transition-all hover:shadow-lg text-sm md:text-base">Mulai Desain</button>
+                <button className="bg-white text-blue-600 px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-bold shadow-sm transition-all hover:shadow-lg text-sm md:text-base">Mulai Desain</button>
               </div>
               <div className="flex-1 relative w-full">
                 <div className="grid grid-cols-2 gap-2 md:gap-3">
@@ -155,27 +155,27 @@ export default async function Home() {
                 </div>
               </div>
             </div>
-            <div className="lg:col-span-4 bg-primary text-white rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col justify-between group">
+            <div className="lg:col-span-4 bg-blue-600 text-white rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col justify-between group">
               <div>
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-white/10 rounded-xl flex items-center justify-center mb-5 md:mb-6">
-                  <BarChart className="w-5 h-5 md:w-6 md:h-6 text-secondary-fixed" />
+                  <BarChart className="w-5 h-5 md:w-6 md:h-6 text-purple-600-fixed" />
                 </div>
                 <h3 className="text-xl md:text-2xl plus-jakarta-sans font-bold mb-3 md:mb-4">Automated Marketing</h3>
-                <p className="text-on-primary-container text-sm md:text-base leading-relaxed">Jadwalkan kampanye iklan dan email marketing secara otomatis berdasarkan perilaku konsumen.</p>
+                <p className="text-blue-100 text-sm md:text-base leading-relaxed">Jadwalkan kampanye iklan dan email marketing secara otomatis berdasarkan perilaku konsumen.</p>
               </div>
               <div className="mt-6 md:mt-8 flex justify-center">
                 <div className="bg-white/5 p-3 md:p-4 rounded-xl w-full border border-white/10">
                   <div className="flex items-end gap-1.5 md:gap-2 h-16 md:h-20">
-                    <div className="flex-1 bg-secondary rounded-t-sm h-1/2"></div>
-                    <div className="flex-1 bg-secondary rounded-t-sm h-3/4"></div>
+                    <div className="flex-1 bg-purple-600 rounded-t-sm h-1/2"></div>
+                    <div className="flex-1 bg-purple-600 rounded-t-sm h-3/4"></div>
                     <div className="flex-1 bg-white rounded-t-sm h-full"></div>
-                    <div className="flex-1 bg-secondary rounded-t-sm h-2/3"></div>
-                    <div className="flex-1 bg-secondary rounded-t-sm h-4/5"></div>
+                    <div className="flex-1 bg-purple-600 rounded-t-sm h-2/3"></div>
+                    <div className="flex-1 bg-purple-600 rounded-t-sm h-4/5"></div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="lg:col-span-4 bg-secondary-container text-on-secondary-container rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col justify-between">
+            <div className="lg:col-span-4 bg-purple-800 text-on-secondary-container rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-xl flex items-center justify-center mb-5 md:mb-6">
                   <PlayCircle className="w-5 h-5 md:w-6 md:h-6 text-white" />
@@ -212,7 +212,7 @@ export default async function Home() {
             </div>
             {/* Mobile-only Lihat Semua Fitur button */}
             <div className="md:hidden flex justify-center mt-4">
-              <button className="text-secondary font-bold flex items-center gap-2 group border border-secondary px-6 py-2.5 rounded-xl">
+              <button className="text-purple-600 font-bold flex items-center gap-2 group border border-secondary px-6 py-2.5 rounded-xl">
                 Semua Fitur KAMI
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
@@ -222,19 +222,19 @@ export default async function Home() {
       </section>
 
       {/* How It Works / Demo */}
-      <section id="demo" className="py-16 md:py-24 bg-primary text-white">
+      <section id="demo" className="py-16 md:py-24 bg-blue-600 text-white">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="mb-10 md:mb-16 text-center max-w-3xl mx-auto">
             <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold mb-3 md:mb-4 tracking-tight">Lihat AI Beraksi</h2>
-            <p className="text-on-primary-container text-base md:text-lg">Hanya butuh satu prompt sederhana untuk mendapatkan hasil profesional.</p>
+            <p className="text-blue-100 text-base md:text-lg">Hanya butuh satu prompt sederhana untuk mendapatkan hasil profesional.</p>
           </div>
           <div className="flex flex-col lg:flex-row gap-8 md:gap-12 items-center">
             <div className="flex-1 w-full">
-              <div className="bg-primary-container p-6 md:p-8 rounded-3xl border border-white/5">
-                <label className="block text-xs font-bold uppercase tracking-widest text-secondary-fixed-dim mb-3 md:mb-4">Tulis Perintah Anda</label>
+              <div className="bg-blue-800 p-6 md:p-8 rounded-3xl border border-white/5">
+                <label className="block text-xs font-bold uppercase tracking-widest text-purple-300 mb-3 md:mb-4">Tulis Perintah Anda</label>
                 <div className="relative">
-                  <textarea className="w-full bg-primary/30 border-outline-variant/15 rounded-2xl p-4 md:p-6 text-base md:text-lg focus:ring-secondary focus:border-secondary transition-all resize-none min-h-[150px] md:min-h-[200px]" placeholder="Buat caption Instagram untuk sepatu kulit handmade baru kami yang bergaya klasik..." defaultValue="Buat caption Instagram untuk sepatu kulit handmade baru kami yang bergaya klasik..."></textarea>
-                  <button className="absolute bottom-3 right-3 md:bottom-4 md:right-4 bg-secondary text-white p-2.5 md:p-3 rounded-xl shadow-lg transition-transform active:scale-90">
+                  <textarea className="w-full bg-blue-600/30 border-outline-variant/15 rounded-2xl p-4 md:p-6 text-base md:text-lg focus:ring-secondary focus:border-secondary transition-all resize-none min-h-[150px] md:min-h-[200px]" placeholder="Buat caption Instagram untuk sepatu kulit handmade baru kami yang bergaya klasik..." defaultValue="Buat caption Instagram untuk sepatu kulit handmade baru kami yang bergaya klasik..."></textarea>
+                  <button className="absolute bottom-3 right-3 md:bottom-4 md:right-4 bg-purple-600 text-white p-2.5 md:p-3 rounded-xl shadow-lg transition-transform active:scale-90">
                     <Send className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
                 </div>
@@ -247,7 +247,7 @@ export default async function Home() {
             </div>
             <div className="flex-1 w-full">
               <div className="bg-surface-container-lowest text-on-surface p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-3 md:p-4 bg-secondary-container text-on-secondary-container rounded-bl-2xl font-bold text-[10px] md:text-xs uppercase tracking-widest">Post Preview</div>
+                <div className="absolute top-0 right-0 p-3 md:p-4 bg-purple-800 text-on-secondary-container rounded-bl-2xl font-bold text-[10px] md:text-xs uppercase tracking-widest">Post Preview</div>
                 <div className="flex items-center gap-3 mb-5 md:mb-6">
                   <img className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover" alt="professional portrait of a young entrepreneur in a modern studio environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtlrz6XyVGZ7GAGJUf3xILFPt4wWHTH-nrEO_2zEIaTIffC4N0xIzu6iOXvkkOMetupSg_2coDpitmwpeCqxSKa7cvavyC54-BT9TabuHEAPhkyWWuyIiHPiz_kQyZNhRedJ493tsxNBIfSb9xkdSTqvmLotKfDqqHV693dpBeivbNy2rpi5R43OiIqiBQ2-8fIyA8phZgXkcP6EKPwzttfXT9Lw4lGiVgoeRwVyg4u-29f2E441pIS-_wfEcvUPpht4rzA22zrNA" />
                   <div>
@@ -263,7 +263,7 @@ export default async function Home() {
                 <div className="space-y-1.5 md:space-y-2">
                   <p className="text-xs md:text-sm font-bold">Langkah Lokal <span className="font-normal">Menghargai tradisi, melangkah ke masa depan. ✨</span></p>
                   <p className="text-xs md:text-sm">Sepatu kulit handmade terbaru kami telah hadir. Dibuat dengan cinta oleh pengrajin lokal untuk Anda yang menghargai kualitas klasik yang tak lekang oleh waktu.</p>
-                  <p className="text-xs md:text-sm text-secondary font-medium">#ClassicVibe #LangkahLokal #LeatherGoods</p>
+                  <p className="text-xs md:text-sm text-purple-600 font-medium">#ClassicVibe #LangkahLokal #LeatherGoods</p>
                 </div>
               </div>
             </div>
@@ -275,7 +275,7 @@ export default async function Home() {
       <section id="harga" className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-primary mb-3 md:mb-4 tracking-tight">Pilih Paket Anda</h2>
+            <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-blue-600 mb-3 md:mb-4 tracking-tight">Pilih Paket Anda</h2>
           </div>
           <div className="flex flex-col lg:flex-row flex-wrap justify-center gap-6 md:gap-8 items-stretch">
             {packages.map((pkg) => {
@@ -284,10 +284,10 @@ export default async function Home() {
 
               if (isPopular) {
                 return (
-                  <div key={pkg.id} className="bg-primary text-white p-8 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative transition-transform hover:scale-[1.03] z-10 w-full lg:w-[350px] flex flex-col">
-                    <div className="absolute -top-3 md:-top-4 left-1/2 -translate-x-1/2 bg-secondary text-white px-5 py-1 md:px-6 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest">Populer</div>
+                  <div key={pkg.id} className="bg-blue-600 text-white p-8 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative transition-transform hover:scale-[1.03] z-10 w-full lg:w-[350px] flex flex-col">
+                    <div className="absolute -top-3 md:-top-4 left-1/2 -translate-x-1/2 bg-purple-600 text-white px-5 py-1 md:px-6 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest">Populer</div>
                     <h3 className="text-xl md:text-2xl font-bold mb-1.5 md:mb-2">{pkg.name}</h3>
-                    <p className="text-on-primary-container text-xs md:text-sm mb-5 md:mb-6 flex-1">{pkg.description}</p>
+                    <p className="text-blue-100 text-xs md:text-sm mb-5 md:mb-6 flex-1">{pkg.description}</p>
                     <div className="flex items-baseline gap-1 mb-6 md:mb-8">
                       <span className="text-4xl md:text-5xl font-extrabold text-white">{formatPrice(pkg.price)}</span>
                       {pkg.price > 0 && <span className="opacity-60 text-xs md:text-sm">/bln</span>}
@@ -295,12 +295,12 @@ export default async function Home() {
                     <ul className="space-y-4 md:space-y-5 mb-8 md:mb-10 text-left">
                       {Array.isArray(features) && features.map((feature: string, idx: number) => (
                         <li key={idx} className="flex items-center gap-3 text-xs md:text-sm">
-                          <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-secondary-fixed shrink-0" />
+                          <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-purple-600-fixed shrink-0" />
                           {feature}
                         </li>
                       ))}
                     </ul>
-                    <button className="w-full py-4 md:py-5 mt-auto rounded-xl md:rounded-2xl bg-secondary text-white font-extrabold text-base md:text-lg shadow-xl shadow-secondary/20 transition-transform active:scale-95">
+                    <button className="w-full py-4 md:py-5 mt-auto rounded-xl md:rounded-2xl bg-purple-600 text-white font-extrabold text-base md:text-lg shadow-xl shadow-secondary/20 transition-transform active:scale-95">
                       Mulai Sekarang
                     </button>
                   </div>
@@ -312,18 +312,18 @@ export default async function Home() {
                   <h3 className="text-lg md:text-xl font-bold mb-1.5 md:mb-2">{pkg.name}</h3>
                   <p className="text-on-surface-variant text-xs md:text-sm mb-5 md:mb-6 flex-1">{pkg.description}</p>
                   <div className="flex items-baseline gap-1 mb-5 md:mb-6">
-                    <span className="text-3xl md:text-4xl font-extrabold text-primary">{formatPrice(pkg.price)}</span>
+                    <span className="text-3xl md:text-4xl font-extrabold text-blue-600">{formatPrice(pkg.price)}</span>
                     {pkg.price > 0 && <span className="text-on-surface-variant text-xs md:text-sm">/bln</span>}
                   </div>
                   <ul className="space-y-3 md:space-y-4 mb-8 md:mb-10 text-left">
                     {Array.isArray(features) && features.map((feature: string, idx: number) => (
                       <li key={idx} className="flex items-center gap-3 text-xs md:text-sm">
-                        <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-secondary shrink-0" />
+                        <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-purple-600 shrink-0" />
                         {feature}
                       </li>
                     ))}
                   </ul>
-                  <button className="w-full py-3 md:py-4 mt-auto rounded-xl border-2 border-secondary text-secondary font-bold hover:bg-secondary hover:text-white transition-colors text-sm md:text-base">
+                  <button className="w-full py-3 md:py-4 mt-auto rounded-xl border-2 border-secondary text-purple-600 font-bold hover:bg-purple-600 hover:text-white transition-colors text-sm md:text-base">
                     Pilih Paket
                   </button>
                 </div>
@@ -337,12 +337,12 @@ export default async function Home() {
       <section id="testimoni" className="py-16 md:py-24 bg-surface-container-low mb-8 md:mb-12">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-10 md:mb-16">
-            <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-primary mb-3 md:mb-4 tracking-tight">Dipercaya oleh UMKM Indonesia</h2>
+            <h2 className="text-3xl md:text-4xl plus-jakarta-sans font-extrabold text-blue-600 mb-3 md:mb-4 tracking-tight">Dipercaya oleh UMKM Indonesia</h2>
             <p className="text-on-surface-variant text-base md:text-lg">Bergabunglah dengan 10,000+ pemilik bisnis yang telah bertransformasi.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-3xl shadow-sm border border-white">
-              <div className="flex gap-1 text-secondary mb-5 md:mb-6">
+              <div className="flex gap-1 text-purple-600 mb-5 md:mb-6">
                 <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
                 <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
                 <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
@@ -359,7 +359,7 @@ export default async function Home() {
               </div>
             </div>
             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-3xl shadow-sm border border-white">
-              <div className="flex gap-1 text-secondary mb-5 md:mb-6">
+              <div className="flex gap-1 text-purple-600 mb-5 md:mb-6">
                 <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
                 <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
                 <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
@@ -376,7 +376,7 @@ export default async function Home() {
               </div>
             </div>
             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-3xl shadow-sm border border-white">
-              <div className="flex gap-1 text-secondary mb-5 md:mb-6">
+              <div className="flex gap-1 text-purple-600 mb-5 md:mb-6">
                 <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
                 <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />
                 <Star className="w-4 h-4 md:w-5 md:h-5 fill-secondary" />

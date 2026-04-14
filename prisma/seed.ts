@@ -39,20 +39,30 @@ async function main() {
   // SEED PACKAGES
   const freePackage = await prisma.package.upsert({
     where: { id: 'package-free' },
-    update: {},
+    update: {
+      name: 'Free',
+      description: 'Paket gratis dengan reset kuota setiap 7 hari',
+      maxContentGenerations: 5,
+      maxImageGenerations: 5,
+      features: JSON.stringify([
+        "5 Generate Gambar per 7 Hari",
+        "5 Generate Konten per 7 Hari",
+        "Akses Selamanya (kuota reset tiap 7 hari)"
+      ]),
+    },
     create: {
       id: 'package-free',
-      name: 'Free Trial',
-      description: 'Coba gratis layanan kami selama 7 hari',
+      name: 'Free',
+      description: 'Paket gratis dengan reset kuota setiap 7 hari',
       price: 0,
       currency: 'IDR',
       duration: 7,
       maxContentGenerations: 5,
       maxImageGenerations: 5,
       features: JSON.stringify([
-        "5 Generate Gambar",
-        "5 Generate Konten",
-        "Akses 7 Hari"
+        "5 Generate Gambar per 7 Hari",
+        "5 Generate Konten per 7 Hari",
+        "Akses Selamanya (kuota reset tiap 7 hari)"
       ]),
       isActive: true,
     }
