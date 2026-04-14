@@ -98,6 +98,10 @@ export const generateContent = async (
       error instanceof Error ? error.message : 'Unknown error'
     );
 
+    if (error instanceof Error && (error.message.toLowerCase().includes('kuota') || error.message.toLowerCase().includes('login') || error.message.toLowerCase().includes('habis'))) {
+      throw error;
+    }
+
     // Fallback to mock generation
     return generateMockContent(config);
   }

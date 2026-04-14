@@ -20,6 +20,7 @@ import {
   optimizeContentForPlatform,
 } from '@/services/contentService'
 import { PLATFORMS, TONES, TARGET_AUDIENCES, TEMPLATE_SUGGESTIONS } from '@/constants/contentTemplates'
+import { toast } from 'sonner'
 
 export default function KontenPage() {
   const [selectedType, setSelectedType] = useState('caption')
@@ -126,6 +127,7 @@ export default function KontenPage() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Gagal menggenerate konten'
       setError(errorMessage)
+      toast.error(errorMessage)
       console.error('Content generation error:', error)
     } finally {
       setIsGenerating(false)
@@ -202,6 +204,7 @@ export default function KontenPage() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Gagal meregenerate konten'
       setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsGenerating(false)
     }

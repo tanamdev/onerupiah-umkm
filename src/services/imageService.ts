@@ -205,6 +205,10 @@ export const generateImage = async (
       error instanceof Error ? error.message : 'Unknown error'
     )
 
+    if (error instanceof Error && (error.message.toLowerCase().includes('kuota') || error.message.toLowerCase().includes('login') || error.message.toLowerCase().includes('habis'))) {
+      throw error;
+    }
+
     return generateMockImages(config, isPoster)
   }
 }

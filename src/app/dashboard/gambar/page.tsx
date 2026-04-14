@@ -38,6 +38,7 @@ import {
   POSTER_TYPOGRAPHY_STYLES,
 } from '@/constants/prompts';
 import { getFoodSuggestions, FOOD_CATEGORIES } from '@/constants/foodNames';
+import { toast } from 'sonner';
 
 export default function GambarPage() {
   const [selectedStyle, setSelectedStyle] = useState('realistic');
@@ -306,6 +307,7 @@ export default function GambarPage() {
       const errorMessage =
         err instanceof Error ? err.message : 'Gagal menggenerate gambar';
       setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Generate error:', err);
     } finally {
       setIsGenerating(false);
