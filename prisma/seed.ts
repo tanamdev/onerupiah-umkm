@@ -9,7 +9,7 @@ async function main() {
   // Tentukan kredensial admin
   const adminEmail = 'admin@onerupiah.com'
   const adminPassword = 'password123'
-  
+
   // Hash password
   const salt = await bcrypt.genSalt(10)
   const hashedPassword = await bcrypt.hash(adminPassword, salt)
@@ -35,7 +35,7 @@ async function main() {
 
   console.log(`✅ Admin user seeded berhasil!`)
   console.log(`-----------------------------------`)
-  
+
   // SEED PACKAGES
   const freePackage = await prisma.package.upsert({
     where: { id: 'package-free' },

@@ -55,12 +55,43 @@ export const BillingService = {
         description: data.description,
         price: data.price,
         yearlyPrice: data.yearlyPrice,
-        currency: data.currency || 'USD',
+        currency: data.currency || 'IDR',
         features: data.features,
         maxContentGenerations: data.maxContentGenerations,
         maxImageGenerations: data.maxImageGenerations,
         duration: data.duration || 30
       }
+    })
+  },
+
+  async updatePackage(
+    id: string,
+    data: Partial<{
+      name: string
+      description: string
+      price: number
+      yearlyPrice: number | null
+      currency: string
+      features: any
+      maxContentGenerations: number | null
+      maxImageGenerations: number | null
+      duration: number
+      isActive: boolean
+    }>
+  ): Promise<Package> {
+    return await prisma.package.update({
+      where: { id },
+      data
+    })
+  },
+
+  async deletePackage(id: string): Promise<void> {
+    await prisma.package.delete({ where: { id } })
+  },
+
+  async getAllPackages(): Promise<Package[]> {
+    return await prisma.package.findMany({
+      orderBy: { createdAt: 'asc' }
     })
   },
 
