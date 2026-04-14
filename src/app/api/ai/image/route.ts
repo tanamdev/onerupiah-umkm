@@ -227,12 +227,12 @@ export async function POST(request: NextRequest) {
     if (action === 'generate') {
       const result = await handleGenerateRequest(formData)
 
-      // Catat penggunaan image ke database jika berhasil
-      if (result.status === 200) {
+      // Catat penggunaan image ke database jika berhasil (1 klik = 1 kuota)
+      if (result.ok) {
         await prisma.imageGeneration.create({
           data: {
             userId: session.user.id,
-            prompt: formData.get('config') as string || 'image',
+            prompt: formData.get('action')?.toString() || 'generate',
             status: 'COMPLETED',
           },
         })

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth/password';
+import { subscriptionService } from '@/lib/subscription';
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,25 +77,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create free trial subscription
-    const trialStartDate = new Date();
-    const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + 7); // 7 days trial
-
-    await prisma.subscription.create({
-      data: {
-        userId: newUser.id,
-        plan: 'TRIAL',
-        status: 'ACTIVE',
-        startDate: trialStartDate,
-        endDate: trialEndDate,
-        monthlyPrice: 0,
-        autoRenew: false,
-      },
-    });
+    // Create default free subscription
+    await subscriptionService.createDefaultSubscription(newUser.id);
 
     return NextResponse.json({
-      message: 'Registrasi berhasil! Anda mendapatkan gratis trial 7 hari.',
+      message: 'Registrasi berhasil! Anda mendapatkan akses paket Free selamanya (kuota reset tiap 7 hari).',
       user: {
         id: newUser.id,
         email: newUser.email,
@@ -102,11 +89,6 @@ export async function POST(request: NextRequest) {
         role: newUser.role,
         emailVerified: newUser.emailVerified,
         createdAt: newUser.createdAt,
-      },
-      trial: {
-        startDate: trialStartDate,
-        endDate: trialEndDate,
-        daysLeft: 7,
       },
     });
   } catch (error) {

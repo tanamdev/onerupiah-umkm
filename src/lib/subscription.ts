@@ -7,7 +7,9 @@ import {
 const prisma = new PrismaClient();
 
 export interface SubscriptionService {
+  createDefaultSubscription(userId: string): Promise<void>;
   createTrialSubscription(userId: string): Promise<void>;
+  createFreeSubscription(userId: string): Promise<void>;
   getUserSubscription(userId: string): Promise<any>;
   isSubscriptionActive(userId: string): Promise<boolean>;
   getSubscriptionDaysLeft(userId: string): Promise<number>;
@@ -17,6 +19,10 @@ export interface SubscriptionService {
 }
 
 class SubscriptionServiceImpl implements SubscriptionService {
+  async createDefaultSubscription(userId: string): Promise<void> {
+    return this.createFreeSubscription(userId);
+  }
+
   async createTrialSubscription(userId: string): Promise<void> {
     const existingSubscription = await prisma.subscription.findFirst({
       where: { userId },
@@ -43,6 +49,34 @@ class SubscriptionServiceImpl implements SubscriptionService {
     });
   }
 
+  async createFreeSubscription(userId: string): Promise<void> {
+    const existingSubscription = await prisma.subscription.findFirst({
+      where: { userId },
+    });
+
+    if (existingSubscription) {
+      return;
+    }
+
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    endDate.setFullYear(endDate.getFullYear() + 100); // Free plan berlaku selamanya
+
+    await prisma.subscription.create({
+      data: {
+        userId,
+        plan: SubscriptionPlan.FREE,
+        status: SubscriptionStatus.ACTIVE,
+        startDate,
+        endDate,
+        monthlyPrice: 0,
+        autoRenew: false,
+        packageId: 'package-free', // Menghubungkan ke paket Free di seed
+        usageResetAt: startDate, // Set awal periode kuota
+      },
+    });
+  }
+
   async getUserSubscription(userId: string): Promise<any> {
     const subscription = await prisma.subscription.findFirst({
       where: {
@@ -55,6 +89,22 @@ class SubscriptionServiceImpl implements SubscriptionService {
 
     if (!subscription) {
       return null;
+    }
+
+    // Auto-migrate legacy TRIAL users to FREE
+    if (subscription.plan === SubscriptionPlan.TRIAL) {
+      console.log(`Migrating user ${userId} from TRIAL to FREE plan`);
+      const updatedSub = await prisma.subscription.update({
+        where: { id: subscription.id },
+        data: {
+          plan: SubscriptionPlan.FREE,
+          packageId: 'package-free',
+          // Only set usageResetAt if it was null
+          usageResetAt: subscription.usageResetAt ?? new Date(),
+        },
+        include: { package: true },
+      });
+      return this.getUserSubscription(userId); // Re-fetch to apply FREE logic
     }
 
     // Free plan: tidak pernah expired — berlaku selamanya dengan reset kuota tiap periode
@@ -122,18 +172,22 @@ class SubscriptionServiceImpl implements SubscriptionService {
     // Calculate pricing and duration based on plan
     let monthlyPrice = 0;
     let yearlyPrice: number | undefined = undefined;
+    let packageId: string | undefined = undefined;
 
     switch (plan) {
       case SubscriptionPlan.PREMIUM_MONTHLY:
         monthlyPrice = 99000; // Rp 99,000 per month
+        packageId = 'package-pro'; // Assuming premium monthly uses pro package
         endDate.setMonth(endDate.getMonth() + 1);
         break;
       case SubscriptionPlan.PREMIUM_YEARLY:
         monthlyPrice = 59000; // Rp 59,000 per month (billed annually)
         yearlyPrice = 708000; // Rp 708,000 per year
+        packageId = 'package-pro';
         endDate.setFullYear(endDate.getFullYear() + 1);
         break;
       case SubscriptionPlan.FREE:
+        packageId = 'package-free';
         endDate.setFullYear(endDate.getFullYear() + 100); // Free plan berlaku selamanya
         break;
       default:
@@ -151,6 +205,7 @@ class SubscriptionServiceImpl implements SubscriptionService {
           endDate,
           monthlyPrice,
           yearlyPrice,
+          packageId,
           autoRenew: plan !== SubscriptionPlan.FREE,
           // Reset kuota saat upgrade/downgrade
           usageResetAt: new Date(),
@@ -167,6 +222,7 @@ class SubscriptionServiceImpl implements SubscriptionService {
           endDate,
           monthlyPrice,
           yearlyPrice,
+          packageId,
           autoRenew: plan !== SubscriptionPlan.FREE,
           // Set awal periode kuota
           usageResetAt: new Date(),

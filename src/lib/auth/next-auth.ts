@@ -5,6 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth/password';
 import { verifyPassword } from '@/lib/auth/password';
+import { subscriptionService } from '@/lib/subscription';
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -109,21 +110,8 @@ export const authOptions: AuthOptions = {
           },
         });
 
-        const trialStartDate = new Date();
-        const trialEndDate = new Date();
-        trialEndDate.setDate(trialEndDate.getDate() + 7);
-
-        await prisma.subscription.create({
-          data: {
-            userId: newUser.id,
-            plan: 'TRIAL',
-            status: 'ACTIVE',
-            startDate: trialStartDate,
-            endDate: trialEndDate,
-            monthlyPrice: 0,
-            autoRenew: false,
-          },
-        });
+        // Create default free subscription
+        await subscriptionService.createDefaultSubscription(newUser.id);
       } else {
         await prisma.user.update({
           where: { email: normalizedEmail },

@@ -55,8 +55,13 @@ export async function maybeResetFreeQuota(userId: string): Promise<void> {
   const subscription = await getActiveSubscriptionWithPackage(userId)
   if (!subscription) return
 
-  // Hanya reset otomatis untuk Free plan
-  if (subscription.plan !== SubscriptionPlan.FREE) return
+  // Reset otomatis untuk Free & Trial plan
+  if (
+    subscription.plan !== SubscriptionPlan.FREE &&
+    subscription.plan !== SubscriptionPlan.TRIAL
+  ) {
+    return
+  }
 
   const durationDays = subscription.package?.duration ?? 7
   const needsReset = shouldResetFreeQuota(
@@ -136,9 +141,26 @@ export async function checkUserQuota(userId: string): Promise<UsageInfo> {
   }
 
   const pkg = subscription.package
-  const contentLimit = pkg?.maxContentGenerations ?? null
-  const imageLimit = pkg?.maxImageGenerations ?? null
+  let contentLimit = pkg?.maxContentGenerations ?? null
+  let imageLimit = pkg?.maxImageGenerations ?? null
   const durationDays = pkg?.duration ?? 30
+
+  // Fallback limit jika packageId belum terpasang (mencegah unlimited)
+  if (!pkg) {
+    if (
+      subscription.plan === SubscriptionPlan.FREE ||
+      subscription.plan === SubscriptionPlan.TRIAL
+    ) {
+      contentLimit = 5
+      imageLimit = 5
+    } else if (
+      subscription.plan === SubscriptionPlan.PREMIUM_MONTHLY ||
+      subscription.plan === SubscriptionPlan.PREMIUM_YEARLY
+    ) {
+      contentLimit = 50
+      imageLimit = 30
+    }
+  }
 
   // Tentukan awal periode untuk menghitung pemakaian
   const periodStart = subscription.usageResetAt ?? subscription.startDate
