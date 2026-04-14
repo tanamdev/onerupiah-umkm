@@ -9,7 +9,7 @@ FROM base AS deps
 ENV NODE_ENV=development
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 FROM base AS builder
 ARG NEXT_PUBLIC_API_URL
