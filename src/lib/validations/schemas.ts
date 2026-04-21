@@ -47,13 +47,22 @@ export const paginationParamsSchema = z.object({
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(1, 'Password harus diisi'),
 })
 
+export const passwordSchema = z
+  .string()
+  .min(8, 'Password minimal 8 karakter')
+  .regex(/[A-Z]/, 'Password harus mengandung minimal 1 huruf besar')
+  .regex(/[a-z]/, 'Password harus mengandung minimal 1 huruf kecil')
+  .regex(/[0-9]/, 'Password harus mengandung minimal 1 angka')
+  .regex(/[^A-Za-z0-9]/, 'Password harus mengandung minimal 1 simbol (contoh: @#$!)')
+
 export const registerSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  name: z.string().min(2, 'Nama minimal 2 karakter'),
+  email: z.string().email('Format email tidak valid'),
+  password: passwordSchema,
+  phone: z.string().optional(),
 })
 
 export type CreateUserInput = z.infer<typeof createUserSchema>
@@ -62,4 +71,5 @@ export type CreatePostInput = z.infer<typeof createPostSchema>
 export type UpdatePostInput = z.infer<typeof updatePostSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
+export type PasswordInput = z.infer<typeof passwordSchema>
 export type PaginationParams = z.infer<typeof paginationParamsSchema>

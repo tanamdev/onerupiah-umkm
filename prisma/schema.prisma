@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,71 +7,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model for authentication and user management
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  password    String
-  name        String
-  phone       String?
-  avatar      String?
-  isActive    Boolean  @default(true)
-  emailVerified Boolean @default(false)
-  role        UserRole @default(USER)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Business profile fields
-  businessName       String?
-  businessCategory   String?
-  businessDescription String?
-  businessAddress    String?
-  businessPhone      String?
-  businessWebsite     String?
-
-  // Store management fields
-  storeName          String?  @map("store_name")
-  storeLogo          String?  @map("store_logo")
-  storeImage         String?  @map("store_image")
-  storeAddress       String?  @map("store_address")
-  storePhone         String?  @map("store_phone")
-  primaryColor       String?  @map("primary_color")
-  secondaryColor     String?  @map("secondary_color")
-  thirdColor         String?  @map("third_color")
-
-  // AI Settings fields
-  aiProvider         String?  @map("ai_provider")
-  aiModel            String?  @map("ai_model")
-  aiApiKey           String?  @map("ai_api_key")
-  aiTemperature      Float?   @map("ai_temperature")
-  aiMaxTokens        Int?     @map("ai_max_tokens")
-  aiToneOfVoice      String?  @map("ai_tone_of_voice")
-  aiTargetAudience   String?  @map("ai_target_audience")
-  aiPlatforms        String[] @map("ai_platforms")
-  aiCustomInstructions String? @map("ai_custom_instructions")
-
-  // Relations
-  subscriptions Subscription[]
-  contentGenerations ContentGeneration[]
-  imageGenerations ImageGeneration[]
-  aiAssistants AiAssistant[]
-  userSessions UserSession[]
-  activityLogs ActivityLog[]
-  transactions Transaction[]
+  id                   String              @id @default(cuid())
+  email                String              @unique
+  password             String
+  name                 String
+  phone                String?
+  avatar               String?
+  isActive             Boolean             @default(true)
+  emailVerified        Boolean             @default(false)
+  role                 UserRole            @default(USER)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  businessName         String?
+  businessCategory     String?
+  businessDescription  String?
+  businessAddress      String?
+  businessPhone        String?
+  businessWebsite      String?
+  storeName            String?             @map("store_name")
+  storeLogo            String?             @map("store_logo")
+  storeImage           String?             @map("store_image")
+  storeAddress         String?             @map("store_address")
+  storePhone           String?             @map("store_phone")
+  primaryColor         String?             @map("primary_color")
+  secondaryColor       String?             @map("secondary_color")
+  thirdColor           String?             @map("third_color")
+  aiProvider           String?             @map("ai_provider")
+  aiModel              String?             @map("ai_model")
+  aiApiKey             String?             @map("ai_api_key")
+  aiTemperature        Float?              @map("ai_temperature")
+  aiMaxTokens          Int?                @map("ai_max_tokens")
+  aiToneOfVoice        String?             @map("ai_tone_of_voice")
+  aiTargetAudience     String?             @map("ai_target_audience")
+  aiPlatforms          String[]            @map("ai_platforms")
+  aiCustomInstructions String?             @map("ai_custom_instructions")
+  activityLogs         ActivityLog[]
+  aiAssistants         AiAssistant[]
+  contentGenerations   ContentGeneration[]
+  imageGenerations     ImageGeneration[]
+  subscriptions        Subscription[]
+  transactions         Transaction[]
+  userSessions         UserSession[]
 
   @@map("users")
 }
 
-// Enum for user roles
-enum UserRole {
-  USER
-  ADMIN
-  SUPER_ADMIN
-}
-
-// Subscription model for user subscriptions
 model Subscription {
-  id           String           @id @default(cuid())
+  id           String             @id @default(cuid())
   userId       String
   packageId    String?
   plan         SubscriptionPlan
@@ -86,35 +63,16 @@ model Subscription {
   endDate      DateTime
   monthlyPrice Int
   yearlyPrice  Int?
-  autoRenew    Boolean          @default(true)
-  usageResetAt DateTime?        // Tanggal terakhir kuota di-reset (untuk Free: setiap 7 hari; untuk berbayar: setiap periode)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-
-  // Relations
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  package Package? @relation(fields: [packageId], references: [id])
+  autoRenew    Boolean            @default(true)
+  usageResetAt DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  package      Package?           @relation(fields: [packageId], references: [id])
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
 }
 
-// Enum for subscription plans
-enum SubscriptionPlan {
-  FREE
-  TRIAL
-  PREMIUM_MONTHLY
-  PREMIUM_YEARLY
-}
-
-// Enum for subscription status
-enum SubscriptionStatus {
-  ACTIVE
-  INACTIVE
-  CANCELLED
-  EXPIRED
-}
-
-// User session model for authentication tracking
 model UserSession {
   id        String   @id @default(cuid())
   userId    String
@@ -124,34 +82,140 @@ model UserSession {
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_sessions")
 }
 
-// Content generation tracking
 model ContentGeneration {
-  id         String        @id @default(cuid())
-  userId     String
-  type       ContentType
-  prompt     String
+  id               String           @id @default(cuid())
+  userId           String
+  type             ContentType
+  prompt           String
   generatedContent String?
-  promptTokens Int?
+  promptTokens     Int?
   completionTokens Int?
-  cost       Float?
-  status     GenerationStatus @default(PENDING)
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cost             Float?
+  status           GenerationStatus @default(PENDING)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("content_generations")
 }
 
-// Enum for content types
+model ImageGeneration {
+  id         String           @id @default(cuid())
+  userId     String
+  prompt     String
+  imageUrl   String?
+  imageStyle String?
+  imageSize  String?
+  cost       Float?
+  status     GenerationStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("image_generations")
+}
+
+model AiAssistant {
+  id         String        @id @default(cuid())
+  userId     String
+  sessionId  String?
+  message    String
+  response   String?
+  tokensUsed Int?
+  cost       Float?
+  type       AssistantType @default(CHAT)
+  createdAt  DateTime      @default(now())
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_assistants")
+}
+
+model Package {
+  id                    String         @id @default(cuid())
+  name                  String
+  description           String
+  price                 Int
+  yearlyPrice           Int?
+  currency              String         @default("USD")
+  features              Json
+  isActive              Boolean        @default(true)
+  maxContentGenerations Int?
+  maxImageGenerations   Int?
+  imagesPerGeneration   Int            @default(2)
+  duration              Int            @default(30)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  subscriptions         Subscription[]
+  transactions          Transaction[]
+
+  @@map("packages")
+}
+
+model Transaction {
+  id             String            @id @default(cuid())
+  userId         String
+  packageId      String
+  amount         Int
+  currency       String            @default("USD")
+  status         TransactionStatus @default(PENDING)
+  paymentMethod  String?
+  paymentGateway String?
+  externalId     String?
+  type           TransactionType   @default(SUBSCRIPTION)
+  period         BillingPeriod     @default(MONTHLY)
+  metadata       Json?
+  failureReason  String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  package        Package           @relation(fields: [packageId], references: [id])
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model ActivityLog {
+  id           String       @id @default(cuid())
+  userId       String
+  activityType ActivityType
+  action       String
+  description  String
+  metadata     Json?
+  ipAddress    String?
+  userAgent    String?
+  success      Boolean      @default(true)
+  errorMessage String?
+  duration     Int?
+  timestamp    DateTime     @default(now())
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activity_logs")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum SubscriptionPlan {
+  FREE
+  TRIAL
+  PREMIUM_MONTHLY
+  PREMIUM_YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  EXPIRED
+}
+
 enum ContentType {
   CAPTION
   EMAIL
@@ -161,7 +225,6 @@ enum ContentType {
   HASHTAGS
 }
 
-// Enum for generation status
 enum GenerationStatus {
   PENDING
   PROCESSING
@@ -169,44 +232,6 @@ enum GenerationStatus {
   FAILED
 }
 
-// Image generation tracking
-model ImageGeneration {
-  id         String     @id @default(cuid())
-  userId     String
-  prompt     String
-  imageUrl   String?
-  imageStyle String?
-  imageSize  String?
-  cost       Float?
-  status     GenerationStatus @default(PENDING)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("image_generations")
-}
-
-// AI Assistant interaction tracking
-model AiAssistant {
-  id         String     @id @default(cuid())
-  userId     String
-  sessionId  String?
-  message    String
-  response   String?
-  tokensUsed Int?
-  cost       Float?
-  type       AssistantType @default(CHAT)
-  createdAt  DateTime   @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("ai_assistants")
-}
-
-// Enum for assistant interaction types
 enum AssistantType {
   CHAT
   CONTENT_HELP
@@ -214,55 +239,6 @@ enum AssistantType {
   BUSINESS_TIPS
 }
 
-// Package model for subscription plans
-model Package {
-  id          String       @id @default(cuid())
-  name        String
-  description String
-  price       Int          // Price in cents
-  yearlyPrice Int?         // Yearly price in cents (optional)
-  currency    String       @default("USD")
-  features    Json         // Features list as JSON
-  isActive    Boolean      @default(true)
-  maxContentGenerations Int?
-  maxImageGenerations   Int?
-  duration    Int          @default(30) // Duration in days
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  // Relations
-  transactions Transaction[]
-  subscriptions Subscription[]
-
-  @@map("packages")
-}
-
-// Transaction model for payment tracking
-model Transaction {
-  id                String            @id @default(cuid())
-  userId            String
-  packageId         String
-  amount            Int               // Amount in cents
-  currency          String            @default("USD")
-  status            TransactionStatus @default(PENDING)
-  paymentMethod     String?
-  paymentGateway    String?           // e.g., "stripe", "midtrans", etc.
-  externalId        String?           // External transaction ID from payment gateway
-  type              TransactionType   @default(SUBSCRIPTION)
-  period            BillingPeriod     @default(MONTHLY)
-  metadata          Json?             // Additional transaction metadata
-  failureReason     String?           // Reason for payment failure
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-
-  // Relations
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  package Package @relation(fields: [packageId], references: [id])
-
-  @@map("transactions")
-}
-
-// Enum for transaction status
 enum TransactionStatus {
   PENDING
   COMPLETED
@@ -271,7 +247,6 @@ enum TransactionStatus {
   REFUNDED
 }
 
-// Enum for transaction types
 enum TransactionType {
   SUBSCRIPTION
   RENEWAL
@@ -280,34 +255,11 @@ enum TransactionType {
   ONE_TIME
 }
 
-// Enum for billing periods
 enum BillingPeriod {
   MONTHLY
   YEARLY
 }
 
-// Activity log model for comprehensive user activity tracking
-model ActivityLog {
-  id           String          @id @default(cuid())
-  userId       String
-  activityType ActivityType
-  action       String
-  description  String
-  metadata     Json?           // Flexible metadata for additional data
-  ipAddress    String?
-  userAgent    String?
-  success      Boolean         @default(true)
-  errorMessage String?
-  duration     Int?            // Duration in milliseconds
-  timestamp    DateTime        @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("activity_logs")
-}
-
-// Enum for activity types
 enum ActivityType {
   LOGIN
   LOGOUT
@@ -320,4 +272,14 @@ enum ActivityType {
   API_ACCESS
   DOWNLOAD
   UPLOAD
+}
+
+model SystemSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@map("system_settings")
 }

@@ -2,43 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth/password';
 import { subscriptionService } from '@/lib/subscription';
+import { registerSchema } from '@/lib/validations/schemas';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password, phone } = await request.json();
+    const body = await request.json();
 
-    // Validate input
-    if (!name || !email || !password) {
+    // Validate input with Zod schema
+    const parsed = registerSchema.safeParse(body);
+    if (!parsed.success) {
+      const firstIssue = parsed.error.issues[0];
       return NextResponse.json(
-        { message: 'Semua field harus diisi' },
+        { message: firstIssue.message, field: firstIssue.path[0] },
         { status: 400 },
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { message: 'Format email tidak valid' },
-        { status: 400 },
-      );
-    }
-
-    // Validate name
-    if (name.trim().length < 2) {
-      return NextResponse.json(
-        { message: 'Nama minimal 2 karakter' },
-        { status: 400 },
-      );
-    }
-
-    // Validate password length
-    if (password.length < 8) {
-      return NextResponse.json(
-        { message: 'Password minimal 8 karakter' },
-        { status: 400 },
-      );
-    }
+    const { name, email, password, phone } = parsed.data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({

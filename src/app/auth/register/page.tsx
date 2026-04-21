@@ -1,12 +1,44 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AuthLayout } from '@/components/layout/auth-layout';
+
+type PasswordRequirement = {
+  label: string;
+  met: boolean;
+};
+
+function getPasswordRequirements(password: string): PasswordRequirement[] {
+  return [
+    { label: 'Minimal 8 karakter', met: password.length >= 8 },
+    { label: 'Huruf besar (A-Z)', met: /[A-Z]/.test(password) },
+    { label: 'Huruf kecil (a-z)', met: /[a-z]/.test(password) },
+    { label: 'Angka (0-9)', met: /[0-9]/.test(password) },
+    { label: 'Simbol (@#$!...)', met: /[^A-Za-z0-9]/.test(password) },
+  ];
+}
+
+function getPasswordStrength(requirements: PasswordRequirement[]): {
+  level: number;
+  label: string;
+  color: string;
+} {
+  const metCount = requirements.filter((r) => r.met).length;
+  if (metCount <= 1)
+    return { level: metCount, label: 'Sangat Lemah', color: 'bg-red-500' };
+  if (metCount === 2)
+    return { level: metCount, label: 'Lemah', color: 'bg-orange-500' };
+  if (metCount === 3)
+    return { level: metCount, label: 'Cukup', color: 'bg-yellow-500' };
+  if (metCount === 4)
+    return { level: metCount, label: 'Kuat', color: 'bg-blue-500' };
+  return { level: metCount, label: 'Sangat Kuat', color: 'bg-green-500' };
+}
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -19,6 +51,15 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const passwordRequirements = useMemo(
+    () => getPasswordRequirements(formData.password),
+    [formData.password],
+  );
+  const passwordStrength = useMemo(
+    () => getPasswordStrength(passwordRequirements),
+    [passwordRequirements],
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -50,8 +91,11 @@ export default function RegisterPage() {
 
     if (!formData.password) {
       newErrors.password = 'Password harus diisi';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password minimal 8 karakter';
+    } else {
+      const unmet = passwordRequirements.find((r) => !r.met);
+      if (unmet) {
+        newErrors.password = unmet.label + ' belum terpenuhi';
+      }
     }
 
     if (!formData.confirmPassword) {
@@ -195,6 +239,61 @@ export default function RegisterPage() {
             />
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+            )}
+
+            {formData.password && (
+              <div className="mt-3 space-y-2">
+                <div className="flex gap-1 h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                    style={{ width: `${(passwordStrength.level / 5) * 100}%` }}
+                  />
+                </div>
+                <p
+                  className={`text-xs font-medium ${passwordStrength.color.replace('bg-', 'text-')}`}
+                >
+                  Kekuatan: {passwordStrength.label}
+                </p>
+                <ul className="grid grid-cols-2 gap-y-1.5 gap-x-2 mt-2">
+                  {passwordRequirements.map((req) => (
+                    <li
+                      key={req.label}
+                      className="flex items-center gap-1.5 text-xs"
+                    >
+                      {req.met ? (
+                        <svg
+                          className="h-3.5 w-3.5 text-green-500 shrink-0"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="h-3.5 w-3.5 text-gray-400 shrink-0"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <circle cx="12" cy="12" r="9" />
+                        </svg>
+                      )}
+                      <span
+                        className={req.met ? 'text-green-600' : 'text-gray-500'}
+                      >
+                        {req.label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
 

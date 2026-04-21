@@ -1,17 +1,20 @@
-import { prisma } from '@/lib/prisma'
-import { SubscriptionPlan, SubscriptionStatus } from '@prisma/client'
+import { prisma } from '@/lib/prisma';
+import { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
 
 export interface UsageInfo {
-  contentUsed: number
-  imageUsed: number
-  contentLimit: number | null  // null = unlimited
-  imageLimit: number | null    // null = unlimited
-  canGenerateContent: boolean
-  canGenerateImage: boolean
-  resetAt: Date | null         // Kapan periode saat ini dimulai
-  nextResetAt: Date | null     // Kapan periode berikutnya (untuk Free)
-  periodDays: number           // Durasi satu periode dalam hari
-  plan: SubscriptionPlan | null
+  contentUsed: number;
+  imageUsed: number;
+  contentLimit: number | null; // null = unlimited
+  imageLimit: number | null; // null = unlimited
+  canGenerateContent: boolean;
+  canGenerateImage: boolean;
+  resetAt: Date | null; // Kapan periode saat ini dimulai
+  nextResetAt: Date | null; // Kapan periode berikutnya (untuk Free)
+  periodDays: number; // Durasi satu periode dalam hari
+  plan: SubscriptionPlan | null;
+  package?: {
+    imagesPerGeneration: number | null;
+  } | null;
 }
 
 /**
@@ -27,7 +30,7 @@ async function getActiveSubscriptionWithPackage(userId: string) {
     include: {
       package: true,
     },
-  })
+  });
 }
 
 /**
@@ -37,13 +40,13 @@ async function getActiveSubscriptionWithPackage(userId: string) {
 function shouldResetFreeQuota(
   usageResetAt: Date | null,
   startDate: Date,
-  durationDays: number
+  durationDays: number,
 ): boolean {
-  const referenceDate = usageResetAt ?? startDate
-  const now = new Date()
-  const diffMs = now.getTime() - referenceDate.getTime()
-  const diffDays = diffMs / (1000 * 60 * 60 * 24)
-  return diffDays >= durationDays
+  const referenceDate = usageResetAt ?? startDate;
+  const now = new Date();
+  const diffMs = now.getTime() - referenceDate.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays >= durationDays;
 }
 
 /**
@@ -52,23 +55,23 @@ function shouldResetFreeQuota(
  * Fungsi ini aman dipanggil berulang kali — hanya reset jika memang sudah waktunya.
  */
 export async function maybeResetFreeQuota(userId: string): Promise<void> {
-  const subscription = await getActiveSubscriptionWithPackage(userId)
-  if (!subscription) return
+  const subscription = await getActiveSubscriptionWithPackage(userId);
+  if (!subscription) return;
 
   // Reset otomatis untuk Free & Trial plan
   if (
     subscription.plan !== SubscriptionPlan.FREE &&
     subscription.plan !== SubscriptionPlan.TRIAL
   ) {
-    return
+    return;
   }
 
-  const durationDays = subscription.package?.duration ?? 7
+  const durationDays = subscription.package?.duration ?? 7;
   const needsReset = shouldResetFreeQuota(
     subscription.usageResetAt,
     subscription.startDate,
-    durationDays
-  )
+    durationDays,
+  );
 
   if (needsReset) {
     await prisma.subscription.update({
@@ -76,7 +79,7 @@ export async function maybeResetFreeQuota(userId: string): Promise<void> {
       data: {
         usageResetAt: new Date(),
       },
-    })
+    });
   }
 }
 
@@ -86,7 +89,7 @@ export async function maybeResetFreeQuota(userId: string): Promise<void> {
  */
 async function countUsageInPeriod(
   userId: string,
-  periodStart: Date
+  periodStart: Date,
 ): Promise<{ contentUsed: number; imageUsed: number }> {
   const [contentUsed, imageUsed] = await Promise.all([
     prisma.contentGeneration.count({
@@ -103,9 +106,9 @@ async function countUsageInPeriod(
         createdAt: { gte: periodStart },
       },
     }),
-  ])
+  ]);
 
-  return { contentUsed, imageUsed }
+  return { contentUsed, imageUsed };
 }
 
 /**
@@ -120,10 +123,10 @@ async function countUsageInPeriod(
  */
 export async function checkUserQuota(userId: string): Promise<UsageInfo> {
   // Coba reset dulu (hanya efek jika sudah waktunya & Free plan)
-  await maybeResetFreeQuota(userId)
+  await maybeResetFreeQuota(userId);
 
   // Ambil subscription terbaru (setelah kemungkinan reset)
-  const subscription = await getActiveSubscriptionWithPackage(userId)
+  const subscription = await getActiveSubscriptionWithPackage(userId);
 
   if (!subscription) {
     return {
@@ -137,13 +140,14 @@ export async function checkUserQuota(userId: string): Promise<UsageInfo> {
       nextResetAt: null,
       periodDays: 0,
       plan: null,
-    }
+      package: null,
+    };
   }
 
-  const pkg = subscription.package
-  let contentLimit = pkg?.maxContentGenerations ?? null
-  let imageLimit = pkg?.maxImageGenerations ?? null
-  const durationDays = pkg?.duration ?? 30
+  const pkg = subscription.package;
+  let contentLimit = pkg?.maxContentGenerations ?? null;
+  let imageLimit = pkg?.maxImageGenerations ?? null;
+  const durationDays = pkg?.duration ?? 30;
 
   // Fallback limit jika packageId belum terpasang (mencegah unlimited)
   if (!pkg) {
@@ -151,30 +155,36 @@ export async function checkUserQuota(userId: string): Promise<UsageInfo> {
       subscription.plan === SubscriptionPlan.FREE ||
       subscription.plan === SubscriptionPlan.TRIAL
     ) {
-      contentLimit = 5
-      imageLimit = 5
+      contentLimit = 5;
+      imageLimit = 5;
     } else if (
       subscription.plan === SubscriptionPlan.PREMIUM_MONTHLY ||
       subscription.plan === SubscriptionPlan.PREMIUM_YEARLY
     ) {
-      contentLimit = 50
-      imageLimit = 30
+      contentLimit = 50;
+      imageLimit = 30;
     }
   }
 
   // Tentukan awal periode untuk menghitung pemakaian
-  const periodStart = subscription.usageResetAt ?? subscription.startDate
+  const periodStart = subscription.usageResetAt ?? subscription.startDate;
 
-  const { contentUsed, imageUsed } = await countUsageInPeriod(userId, periodStart)
+  const { contentUsed, imageUsed } = await countUsageInPeriod(
+    userId,
+    periodStart,
+  );
 
   // Hitung next reset (hanya relevan untuk Free plan)
-  let nextResetAt: Date | null = null
+  let nextResetAt: Date | null = null;
   if (subscription.plan === SubscriptionPlan.FREE) {
-    nextResetAt = new Date(periodStart.getTime() + durationDays * 24 * 60 * 60 * 1000)
+    nextResetAt = new Date(
+      periodStart.getTime() + durationDays * 24 * 60 * 60 * 1000,
+    );
   }
 
-  const canGenerateContent = contentLimit === null ? true : contentUsed < contentLimit
-  const canGenerateImage = imageLimit === null ? true : imageUsed < imageLimit
+  const canGenerateContent =
+    contentLimit === null ? true : contentUsed < contentLimit;
+  const canGenerateImage = imageLimit === null ? true : imageUsed < imageLimit;
 
   return {
     contentUsed,
@@ -187,5 +197,6 @@ export async function checkUserQuota(userId: string): Promise<UsageInfo> {
     nextResetAt,
     periodDays: durationDays,
     plan: subscription.plan,
-  }
+    package: pkg ? { imagesPerGeneration: pkg.imagesPerGeneration } : null,
+  };
 }

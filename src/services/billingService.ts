@@ -1,27 +1,35 @@
-import { PrismaClient, Package, Transaction, TransactionStatus, BillingPeriod, TransactionType, Prisma } from '@prisma/client'
+import {
+  PrismaClient,
+  Package,
+  Transaction,
+  TransactionStatus,
+  BillingPeriod,
+  TransactionType,
+  Prisma,
+} from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 export interface PackageWithStats extends Package {
-  userSubscriptions?: number
-  totalTransactions?: number
+  userSubscriptions?: number;
+  totalTransactions?: number;
 }
 
 export type TransactionWithPackage = Prisma.TransactionGetPayload<{
-  include: { package: true }
-}>
+  include: { package: true };
+}>;
 
 export const BillingService = {
   // Package Management
   async getActivePackages(): Promise<Package[]> {
     return await prisma.package.findMany({
       where: {
-        isActive: true
+        isActive: true,
       },
       orderBy: {
-        createdAt: 'asc'
-      }
-    })
+        createdAt: 'asc',
+      },
+    });
   },
 
   async getPackageById(id: string): Promise<Package | null> {
@@ -31,23 +39,24 @@ export const BillingService = {
         transactions: {
           take: 10,
           orderBy: {
-            createdAt: 'desc'
-          }
-        }
-      }
-    })
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
   },
 
   async createPackage(data: {
-    name: string
-    description: string
-    price: number
-    yearlyPrice?: number
-    currency?: string
-    features: any
-    maxContentGenerations?: number
-    maxImageGenerations?: number
-    duration?: number
+    name: string;
+    description: string;
+    price: number;
+    yearlyPrice?: number;
+    currency?: string;
+    features: any;
+    maxContentGenerations?: number;
+    maxImageGenerations?: number;
+    imagesPerGeneration?: number;
+    duration?: number;
   }): Promise<Package> {
     return await prisma.package.create({
       data: {
@@ -59,54 +68,56 @@ export const BillingService = {
         features: data.features,
         maxContentGenerations: data.maxContentGenerations,
         maxImageGenerations: data.maxImageGenerations,
-        duration: data.duration || 30
-      }
-    })
+        imagesPerGeneration: data.imagesPerGeneration || 2,
+        duration: data.duration || 30,
+      },
+    });
   },
 
   async updatePackage(
     id: string,
     data: Partial<{
-      name: string
-      description: string
-      price: number
-      yearlyPrice: number | null
-      currency: string
-      features: any
-      maxContentGenerations: number | null
-      maxImageGenerations: number | null
-      duration: number
-      isActive: boolean
-    }>
+      name: string;
+      description: string;
+      price: number;
+      yearlyPrice: number | null;
+      currency: string;
+      features: any;
+      maxContentGenerations: number | null;
+      maxImageGenerations: number | null;
+      imagesPerGeneration: number;
+      duration: number;
+      isActive: boolean;
+    }>,
   ): Promise<Package> {
     return await prisma.package.update({
       where: { id },
-      data
-    })
+      data,
+    });
   },
 
   async deletePackage(id: string): Promise<void> {
-    await prisma.package.delete({ where: { id } })
+    await prisma.package.delete({ where: { id } });
   },
 
   async getAllPackages(): Promise<Package[]> {
     return await prisma.package.findMany({
-      orderBy: { createdAt: 'asc' }
-    })
+      orderBy: { createdAt: 'asc' },
+    });
   },
 
   // Transaction Management
   async createTransaction(data: {
-    userId: string
-    packageId: string
-    amount: number
-    currency?: string
-    paymentMethod?: string
-    paymentGateway?: string
-    externalId?: string
-    type?: TransactionType
-    period?: BillingPeriod
-    metadata?: any
+    userId: string;
+    packageId: string;
+    amount: number;
+    currency?: string;
+    paymentMethod?: string;
+    paymentGateway?: string;
+    externalId?: string;
+    type?: TransactionType;
+    period?: BillingPeriod;
+    metadata?: any;
   }): Promise<Transaction> {
     return await prisma.transaction.create({
       data: {
@@ -119,29 +130,32 @@ export const BillingService = {
         externalId: data.externalId,
         type: data.type || 'SUBSCRIPTION',
         period: data.period || 'MONTHLY',
-        metadata: data.metadata
+        metadata: data.metadata,
       },
       include: {
-        package: true
-      }
-    })
+        package: true,
+      },
+    });
   },
 
   // Transactional Methods for Atomic Operations
   async createTransactionWithPayment(
     transactionData: {
-      userId: string
-      packageId: string
-      amount: number
-      currency?: string
-      paymentMethod?: string
-      paymentGateway?: string
-      type?: TransactionType
-      period?: BillingPeriod
-      metadata?: any
+      userId: string;
+      packageId: string;
+      amount: number;
+      currency?: string;
+      paymentMethod?: string;
+      paymentGateway?: string;
+      type?: TransactionType;
+      period?: BillingPeriod;
+      metadata?: any;
     },
-    paymentCallback: () => Promise<{ reference: string; paymentUrl: string }>
-  ): Promise<{ transaction: Transaction; paymentResult: { reference: string; paymentUrl: string } }> {
+    paymentCallback: () => Promise<{ reference: string; paymentUrl: string }>,
+  ): Promise<{
+    transaction: Transaction;
+    paymentResult: { reference: string; paymentUrl: string };
+  }> {
     // create record up-front outside of long-running transaction
     const transaction = await prisma.transaction.create({
       data: {
@@ -154,41 +168,44 @@ export const BillingService = {
         type: transactionData.type || 'SUBSCRIPTION',
         period: transactionData.period || 'MONTHLY',
         metadata: transactionData.metadata,
-        status: 'PENDING'
+        status: 'PENDING',
       },
       include: {
-        package: true
-      }
-    })
+        package: true,
+      },
+    });
 
     try {
-      const paymentResult = await paymentCallback()
+      const paymentResult = await paymentCallback();
 
       const updatedTransaction = await prisma.transaction.update({
         where: { id: transaction.id },
         data: {
           externalId: paymentResult.reference,
-          status: 'PENDING'
+          status: 'PENDING',
         },
         include: {
-          package: true
-        }
-      })
+          package: true,
+        },
+      });
 
       return {
         transaction: updatedTransaction,
-        paymentResult
-      }
+        paymentResult,
+      };
     } catch (paymentError) {
       await prisma.transaction.update({
         where: { id: transaction.id },
         data: {
           status: 'FAILED',
-          failureReason: paymentError instanceof Error ? paymentError.message : String(paymentError)
-        }
-      })
+          failureReason:
+            paymentError instanceof Error
+              ? paymentError.message
+              : String(paymentError),
+        },
+      });
 
-      throw paymentError
+      throw paymentError;
     }
   },
 
@@ -196,64 +213,66 @@ export const BillingService = {
     id: string,
     status: TransactionStatus,
     failureReason?: string,
-    externalId?: string
+    externalId?: string,
   ): Promise<Transaction> {
     return await prisma.transaction.update({
       where: { id },
       data: {
         status,
         failureReason,
-        externalId: externalId
+        externalId: externalId,
       },
       include: {
-        package: true
-      }
-    })
+        package: true,
+      },
+    });
   },
 
-  async findTransactionByExternalId(externalId: string): Promise<TransactionWithPackage | null> {
+  async findTransactionByExternalId(
+    externalId: string,
+  ): Promise<TransactionWithPackage | null> {
     return await prisma.transaction.findFirst({
       where: { externalId },
       include: {
-        package: true
-      }
-    })
+        package: true,
+      },
+    });
   },
 
   async getTransactionById(id: string): Promise<TransactionWithPackage | null> {
     return await prisma.transaction.findUnique({
       where: { id },
       include: {
-        package: true
-      }
-    })
+        package: true,
+      },
+    });
   },
 
   async getUserTransactions(
     userId: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<TransactionWithPackage[]> {
     return await prisma.transaction.findMany({
       where: { userId },
       include: {
-        package: true
+        package: true,
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'desc',
       },
       take: limit,
-      skip: offset
-    })
+      skip: offset,
+    });
   },
 
   async getUserTransactionSummary(userId: string): Promise<{
-    totalTransactions: number
-    totalSpent: number
-    successfulTransactions: number
-    failedTransactions: number
-    monthlySpending: number
-    yearlySpending: number
+    totalTransactions: number;
+    totalSpent: number;
+    successfulTransactions: number;
+    failedTransactions: number;
+    monthlySpending: number;
+    yearlySpending: number;
   }> {
     const transactions = await prisma.transaction.findMany({
       where: { userId },
@@ -261,28 +280,33 @@ export const BillingService = {
         amount: true,
         status: true,
         createdAt: true,
-        period: true
-      }
-    })
+        period: true,
+      },
+    });
 
-    const now = new Date()
-    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    const currentYear = new Date(now.getFullYear(), 0, 1)
+    const now = new Date();
+    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const currentYear = new Date(now.getFullYear(), 0, 1);
 
     const summary = {
       totalTransactions: transactions.length,
-      totalSpent: transactions.filter(t => t.status === 'COMPLETED').reduce((sum, t) => sum + t.amount, 0),
-      successfulTransactions: transactions.filter(t => t.status === 'COMPLETED').length,
-      failedTransactions: transactions.filter(t => t.status === 'FAILED').length,
+      totalSpent: transactions
+        .filter((t) => t.status === 'COMPLETED')
+        .reduce((sum, t) => sum + t.amount, 0),
+      successfulTransactions: transactions.filter(
+        (t) => t.status === 'COMPLETED',
+      ).length,
+      failedTransactions: transactions.filter((t) => t.status === 'FAILED')
+        .length,
       monthlySpending: transactions
-        .filter(t => t.status === 'COMPLETED' && t.createdAt >= currentMonth)
+        .filter((t) => t.status === 'COMPLETED' && t.createdAt >= currentMonth)
         .reduce((sum, t) => sum + t.amount, 0),
       yearlySpending: transactions
-        .filter(t => t.status === 'COMPLETED' && t.createdAt >= currentYear)
-        .reduce((sum, t) => sum + t.amount, 0)
-    }
+        .filter((t) => t.status === 'COMPLETED' && t.createdAt >= currentYear)
+        .reduce((sum, t) => sum + t.amount, 0),
+    };
 
-    return summary
+    return summary;
   },
 
   // User Billing Info
@@ -292,86 +316,88 @@ export const BillingService = {
       include: {
         subscriptions: {
           where: {
-            status: 'ACTIVE'
+            status: 'ACTIVE',
           },
           orderBy: {
-            endDate: 'desc'
+            endDate: 'desc',
           },
           take: 1,
           include: {
-            package: true
-          }
+            package: true,
+          },
         },
         transactions: {
           take: 5,
           orderBy: {
-            createdAt: 'desc'
+            createdAt: 'desc',
           },
           include: {
-            package: true
-          }
-        }
-      }
-    })
+            package: true,
+          },
+        },
+      },
+    });
 
     if (!user) {
-      throw new Error('User not found')
+      throw new Error('User not found');
     }
 
-    const transactionSummary = await this.getUserTransactionSummary(userId)
+    const transactionSummary = await this.getUserTransactionSummary(userId);
 
     return {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
       },
       currentSubscription: user.subscriptions[0] || null,
       recentTransactions: user.transactions,
-      transactionSummary
-    }
+      transactionSummary,
+    };
   },
 
   // Check if user needs renewal (within 7 days)
   async checkUserNeedsRenewal(userId: string): Promise<{
-    needsRenewal: boolean
-    subscription: any
-    daysRemaining: number
+    needsRenewal: boolean;
+    subscription: any;
+    daysRemaining: number;
   }> {
     const subscription = await prisma.subscription.findFirst({
       where: {
         userId,
         status: 'ACTIVE',
         endDate: {
-          gt: new Date()
-        }
+          gt: new Date(),
+        },
       },
       include: {
-        package: true
+        package: true,
       },
       orderBy: {
-        endDate: 'desc'
-      }
-    })
+        endDate: 'desc',
+      },
+    });
 
     if (!subscription) {
       return {
         needsRenewal: true,
         subscription: null,
-        daysRemaining: 0
-      }
+        daysRemaining: 0,
+      };
     }
 
-    const now = new Date()
-    const endDate = new Date(subscription.endDate)
-    const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    const now = new Date();
+    const endDate = new Date(subscription.endDate);
+    const daysRemaining = Math.ceil(
+      (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
     return {
       needsRenewal: daysRemaining <= 7,
       subscription,
-      daysRemaining: Math.max(0, daysRemaining)
-    }
-  }
-}
+      daysRemaining: Math.max(0, daysRemaining),
+    };
+  },
+};
 
-export default BillingService
+export default BillingService;
